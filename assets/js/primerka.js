@@ -266,7 +266,7 @@
     $$("[data-sel-sw]", box).forEach(function (el) { DC.patBg(el, D.byId[el.getAttribute("data-sel-sw")], 30); });
     $("[data-sel-all]", box).addEventListener("click", function () {
       ids.forEach(function (id) { DC.cart.add(id, rows[id].n); });
-      DC.toast({ title: "Подборка в корзине", text: ids.length + " " + DC.plural(ids.length, "позиция", "позиции", "позиций"), link: { href: "/cart.html", text: "Оформить" } });
+      DC.toast({ title: "Подборка в корзине", text: ids.length + " " + DC.plural(ids.length, "позиция", "позиции", "позиций"), link: { href: "/cart", text: "Оформить" } });
     });
     $("[data-sel-send]", box).addEventListener("click", function () {
       DC.openLead("studio", { details: function () {
@@ -283,7 +283,7 @@
     if (ui.light !== "day") p.set("light", ui.light);
     var w = s.slice(0, 3).map(function (x) { return x && x.wp ? x.wp : "-"; });
     if (w.some(function (x) { return x !== "-"; })) p.set("w", w.join(","));
-    if (window.history.replaceState) window.history.replaceState(null, "", "/primerka.html?" + p.toString());
+    if (window.history.replaceState) window.history.replaceState(null, "", "/primerka?" + p.toString());
   }
   function sync() {
     renderRooms(); renderLights(); renderSurfaces(); renderNow(); renderWpGrid(); renderPaint(); renderSelection();

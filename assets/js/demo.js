@@ -48,9 +48,24 @@
 
   if (!root) return;
   var path = decodeURIComponent(location.pathname).replace(/\/+$/, "") || "/";
+  /* страницы списка как на старом decando.ru: …/page/N */
+  var PAGE = 1, pm = path.match(/^(.*)\/page\/(\d+)$/);
+  if (pm) { path = pm[1]; PAGE = +pm[2]; }
+  var ROOT = "/product-category/oboi";
+  if (path === "/oboi") { location.replace(ROOT + location.search); return; }
+  /* разделы старого decando.ru */
+  var CATS = {
+    "/product-category/oboi": { h1: "Каталог обоев", label: "Все обои", base: {} },
+    "/product-category/oboi/flizelinovye": { h1: "Флизелиновые обои", label: "Флизелиновые", base: { "vid-oboev": ["flizelinovye"] } },
+    "/product-category/oboi/vinilovye": { h1: "Виниловые обои", label: "Виниловые", base: { "vid-oboev": ["vinilovye", "vinilovye-na-flizeline"] } },
+    "/product-category/oboi/pod-pokrasku": { h1: "Обои под покраску", label: "Под покраску", base: { "vid-oboev": ["pod-pokrasku"] } },
+    "/product-category/oboi/tovary-po-skidke": { h1: "Обои по скидке", label: "Товары по скидке", base: {}, sale: true },
+    "/product-category/freski": { h1: "Фрески", label: "Фрески", base: { "vid-oboev": ["fotooboi-i-panno"] } }
+  };
   var m;
   load().then(function () {
-    if (path === "/oboi" || (m = path.match(/^\/oboi\/([a-z0-9-]+)$/))) return listing({ tag: m ? m[1] : "" });
+    if (CATS[path]) return listing({ cat: path });
+    if ((m = path.match(/^\/oboi\/([a-z0-9-]+)$/))) return listing({ tag: m[1] });
     if ((m = path.match(/^\/brand\/([a-z0-9-]+)(?:\/([a-z0-9-]+))?$/))) return listing({ brand: m[1], coll: m[2] || "" });
     if ((m = path.match(/^\/product\/([A-Za-z0-9_-]+)$/))) return product(m[1]);
     notFound();
@@ -67,7 +82,7 @@
   /* ---------- список: /oboi, /oboi/<тег>, /brand/… ---------- */
   function listing(o) {
     var qs = new URLSearchParams(location.search);
-    var base = {}, brand = o.brand || "", coll = o.coll || "";
+    var base = o.cat ? JSON.parse(JSON.stringify(CATS[o.cat].base)) : {}, brand = o.brand || "", coll = o.coll || "", saleOnly = o.cat && CATS[o.cat].sale;
     if (o.tag) {
       var found = null;
       FAC.list.some(function (f) { if (o.tag.indexOf(f.prefix) === 0) { var v = o.tag.slice(f.prefix.length); if (f.byV[v]) { found = [f.key, v]; return true; } } return false; });
@@ -77,7 +92,7 @@
     if (brand && (!BRANDS[brand] || (coll && !BRANDS[brand].colls[coll]))) return notFound();
     var extra = {};
     qs.forEach(function (val, key) { var mm = key.match(/^f\[([a-z0-9-]+)\]$/); if (mm && FAC.byKey[mm[1]]) extra[mm[1]] = val.split(",").filter(function (v) { return FAC.byKey[mm[1]].byV[v]; }); });
-    var xb = qs.get("b") || "", sort = qs.get("sort") || "pop", page = Math.max(1, +qs.get("page") || 1), q = (qs.get("q") || "").slice(0, 60);
+    var xb = qs.get("b") || "", sort = qs.get("sort") || "pop", page = Math.max(1, PAGE || +qs.get("page") || 1), q = (qs.get("q") || "").slice(0, 60);
     var active = {};
     [base, extra].forEach(function (src) { Object.keys(src).forEach(function (k) { active[k] = (active[k] || []).concat(src[k]); }); });
     var br = brand || xb;
@@ -89,7 +104,7 @@
       return true;
     }
     var pool = q ? searchHits(q) : CAT;
-    var items = pool.filter(function (p) { return match(p, active, br) && (sort !== "sale" || p.old); });
+    var items = pool.filter(function (p) { return match(p, active, br) && ((sort !== "sale" && !saleOnly) || p.old); });
     var cmp = {
       pop: function (a, b) { return b.pop - a.pop; },
       cheap: function (a, b) { return (!a.price - !b.price) || a.price - b.price; },
@@ -105,13 +120,14 @@
     /* заголовок и крошки */
     var h1 = "Обои", cr = [["Главная", "/"], ["Каталог", "/catalog"]];
     if (brand) {
-      var B = BRANDS[brand]; cr.push(["Обои", "/oboi"]);
+      var B = BRANDS[brand]; cr.push(["Обои", ROOT]);
       if (coll) { cr.push([B.name, "/brand/" + brand]); h1 = "Обои " + B.name + " «" + B.colls[coll].name + "»"; cr.push([B.colls[coll].name, null]); }
       else { h1 = "Обои " + B.name; cr.push([B.name, null]); }
     } else if (o.tag) {
       var fk = Object.keys(base)[0], val = FAC.byKey[fk].byV[base[fk][0]];
-      h1 = val.h1 || ("Обои: " + val.label); cr.push(["Обои", "/oboi"]); cr.push([val.label, null]);
-    } else { cr.push(["Обои", null]); if (sort === "sale") h1 = "Обои по скидке"; }
+      h1 = val.h1 || ("Обои: " + val.label); cr.push(["Обои", ROOT]); cr.push([val.label, null]);
+    } else if (o.cat && o.cat !== ROOT) { h1 = CATS[o.cat].h1; cr.push(["Обои", ROOT]); cr.push([CATS[o.cat].label, null]); }
+    else { h1 = "Каталог обоев"; cr.push(["Обои", null]); if (sort === "sale") h1 = "Обои по скидке"; }
     var xparts = [];
     Object.keys(extra).forEach(function (k) { extra[k].forEach(function (v) { xparts.push(FAC.byKey[k].byV[v].label.toLowerCase()); }); });
     if (xb && BRANDS[xb]) xparts.push(BRANDS[xb].name);
@@ -125,18 +141,17 @@
       Object.keys(ext).forEach(function (k) { if (ext[k].length) p.set("f[" + k + "]", ext[k].join(",")); });
       if (b) p.set("b", b);
       if (s && s !== "pop") p.set("sort", s);
-      if (pg > 1) p.set("page", pg);
       if (q) p.set("q", q);
       var str = p.toString().replace(/%5B/g, "[").replace(/%5D/g, "]").replace(/%2C/g, ",");
-      return path + (str ? "?" + str : "");
+      return path + (pg > 1 ? "/page/" + pg : "") + (str ? "?" + str : "");
     }
     function toggle(k, v) {
       var on = (active[k] || []).indexOf(v) >= 0;
-      if (on && (base[k] || []).indexOf(v) >= 0) return path.indexOf("/brand/") === 0 ? url(extra, xb, sort, 1) : "/oboi";
+      if (on && (base[k] || []).indexOf(v) >= 0) return path.indexOf("/brand/") === 0 || o.cat ? url(extra, xb, sort, 1) : ROOT;
       var ext = JSON.parse(JSON.stringify(extra));
       if (on) ext[k] = ext[k].filter(function (x) { return x !== v; });
       else {
-        if (path === "/oboi" && !Object.keys(extra).length && !xb && !q) return tagUrl(k, v);
+        if (path === ROOT && !Object.keys(extra).length && !xb && !q) return tagUrl(k, v);
         ext[k] = (ext[k] || []).concat(v);
       }
       return url(ext, xb, sort, 1);
@@ -165,7 +180,7 @@
     if (brows.length) {
       side += '<div class="fgroup" data-fgroup="brand"><p class="fgroup__t">Бренд</p><div class="fopts">';
       brows.forEach(function (s, i) {
-        var on = s === br, u = on ? (brand ? "/oboi" : url(extra, "", sort, 1)) : (path === "/oboi" && !Object.keys(extra).length && !q ? "/brand/" + s : (brand ? "/brand/" + s : url(extra, s, sort, 1)));
+        var on = s === br, u = on ? (brand ? ROOT : url(extra, "", sort, 1)) : (path === ROOT && !Object.keys(extra).length && !q ? "/brand/" + s : (brand ? "/brand/" + s : url(extra, s, sort, 1)));
         side += '<a class="fopt' + (on ? " is-on" : "") + (i >= 8 && !on ? " is-hid" : "") + '" href="' + esc(u) + '"><i></i><span>' + esc(BRANDS[s].name) + "</span><em>" + (bc[s] || 0) + "</em></a>";
       });
       side += "</div>" + (brows.length > 8 ? '<button type="button" class="fmore" data-fmore>Ещё ' + (brows.length - 8) + "</button>" : "") + "</div>";
@@ -173,7 +188,7 @@
     /* активные фильтры */
     var chips = [];
     Object.keys(active).forEach(function (k) { active[k].forEach(function (v) { chips.push([FAC.byKey[k].byV[v].label, toggle(k, v)]); }); });
-    if (br && BRANDS[br]) chips.unshift([BRANDS[br].name, brand ? "/oboi" : url(extra, "", sort, 1)]);
+    if (br && BRANDS[br]) chips.unshift([BRANDS[br].name, brand ? ROOT : url(extra, "", sort, 1)]);
     var chipsHtml = chips.length ? '<div class="active-filters">' + chips.map(function (c) { return '<a class="chip" href="' + esc(c[1]) + '">' + esc(c[0]) + '<svg class="ic"><use href="#i-close"/></svg></a>'; }).join("") + "</div>" : "";
     /* страницы */
     var pager = "";
@@ -187,11 +202,11 @@
     }
     var sorts = [["pop", "Сначала популярные"], ["cheap", "Сначала дешевле"], ["exp", "Сначала дороже"], ["new", "Сначала новинки"], ["sale", "Со скидкой"]];
     root.innerHTML =
-      '<section class="page-head"><div class="container"><nav class="crumbs" aria-label="Навигация">' + crumbs(cr) + '</nav><div class="page-head__row"><div><h1 class="page-head__title page-head__title--tag">' + esc(h1) + "</h1></div></div></div></section>" +
+      '<section class="page-head"><div class="container"><nav class="crumbs" aria-label="Навигация">' + crumbs(cr) + '</nav><div class="page-head__row"><div><h1 class="page-head__title page-head__title--tag">' + esc(h1) + "</h1></div></div>" + (o.cat ? '<nav class="catnav" aria-label="Разделы каталога">' + Object.keys(CATS).map(function (c) { return '<a href="' + c + '"' + (c === o.cat ? ' class="is-on" aria-current="page"' : "") + ">" + CATS[c].label + "</a>"; }).join("") + "</nav>" : "") + "</div></section>" +
       '<div class="container cat"><aside class="filters" data-filters aria-label="Фильтры"><div class="filters__head"><b class="h3" style="font-size:28px">Фильтры</b><button type="button" class="iconbtn" data-filters-close aria-label="Закрыть фильтры"><svg class="ic"><use href="#i-close"/></svg></button></div>' + side + "</aside><div>" +
       '<div class="cat__bar"><p class="cat__count"><b>' + total + "</b> " + plural(total, "модель", "модели", "моделей") + '</p><div class="cat__tools"><button type="button" class="btn btn--ghost btn--sm cat__filter-btn" data-filters-open><svg class="ic"><use href="#i-filter"/></svg>Фильтры</button><select class="sort" data-sort aria-label="Сортировка">' +
       sorts.map(function (s) { return '<option value="' + s[0] + '"' + (s[0] === sort ? " selected" : "") + ">" + s[1] + "</option>"; }).join("") + "</select></div></div>" + chipsHtml +
-      (total ? '<div class="pgrid" data-grid></div>' + pager : '<div class="cat__empty"><p class="h3">Ничего не нашлось</p><p class="muted">Попробуйте убрать часть фильтров.</p><a class="btn btn--ghost" href="/oboi">Все обои</a></div>') + "</div></div>";
+      (total ? '<div class="pgrid" data-grid></div>' + pager : '<div class="cat__empty"><p class="h3">Ничего не нашлось</p><p class="muted">Попробуйте убрать часть фильтров.</p><a class="btn btn--ghost" href="/product-category/oboi">Все обои</a></div>') + "</div></div>";
     var grid = $("[data-grid]", root);
     shown.forEach(function (p) { D.byId[p.id] = D.byId[p.id] || p; if (grid) grid.appendChild(DC.card(p)); });
     DC.hydrateCards(root);
@@ -208,7 +223,7 @@
     var tones = CAT.filter(function (q) { return q.name === P.name; }).slice(0, 12);
     var related = CAT.filter(function (q) { return q !== P && q.collSlug && q.collSlug === P.collSlug && q.brandSlug === P.brandSlug; }).slice(0, 10);
     var vid = (P.attrs["vid-oboev"] || [])[0], vidVal = vid && FAC.byKey["vid-oboev"].byV[vid];
-    var cr = [["Главная", "/"], ["Каталог", "/catalog"], ["Обои", "/oboi"]]; if (vidVal) cr.push([vidVal.label, tagUrl("vid-oboev", vid)]); cr.push([P.brand + " " + P.sku, null]);
+    var cr = [["Главная", "/"], ["Каталог", "/catalog"], ["Обои", "/product-category/oboi"]]; if (vidVal) { var VC = { flizelinovye: "/product-category/oboi/flizelinovye", vinilovye: "/product-category/oboi/vinilovye", "vinilovye-na-flizeline": "/product-category/oboi/vinilovye", "pod-pokrasku": "/product-category/oboi/pod-pokrasku", "fotooboi-i-panno": "/product-category/freski" }; cr.push([vidVal.label, VC[vid] || tagUrl("vid-oboev", vid)]); } cr.push([P.brand + " " + P.sku, null]);
     function links(k) { return (P.attrs[k] || []).map(function (v) { var x = FAC.byKey[k] && FAC.byKey[k].byV[v]; return x ? '<a href="' + tagUrl(k, v) + '">' + esc(x.label) + "</a>" : ""; }).filter(Boolean).join(", "); }
     var rows = [["Бренд", '<a href="/brand/' + P.brandSlug + '">' + esc(P.brand) + "</a>"]];
     if (P.collSlug) rows.push(["Коллекция", '<a href="/brand/' + P.brandSlug + "/" + P.collSlug + '">' + esc(P.coll) + "</a>"]);
@@ -242,7 +257,7 @@
       '<p class="pinfo__more"><button type="button" class="u-link" data-lead="oneclick" data-product="' + esc(P.id) + '">Купить в один клик</button><span>·</span><span>Доставка по России и самовывоз из 4 шоурумов</span></p></div></div>' +
       '<div class="ptabs"><div class="ptabs__nav" role="tablist"><button type="button" class="is-on" data-tab="specs" role="tab">Характеристики</button><button type="button" data-tab="ship" role="tab">Доставка</button></div>' +
       '<div class="ptabs__panel" data-tabpanel="specs"><table class="spec-table"><tbody>' + rows.map(function (r) { return "<tr><th>" + r[0] + "</th><td>" + r[1] + "</td></tr>"; }).join("") + "</tbody></table></div>" +
-      '<div class="ptabs__panel" data-tabpanel="ship" hidden><div class="prose"><p>Доставляем по всей России или забирайте в шоуруме: Москва, Санкт-Петербург, Брянск, Калуга. Срок и стоимость назовёт менеджер.</p><p><a href="/delivery.html">Доставка и оплата</a> · <a href="/return.html">Обмен и возврат</a></p></div></div></div></div>' +
+      '<div class="ptabs__panel" data-tabpanel="ship" hidden><div class="prose"><p>Доставляем по всей России или забирайте в шоуруме: Москва, Санкт-Петербург, Брянск, Калуга. Срок и стоимость назовёт менеджер.</p><p><a href="/delivery">Доставка и оплата</a> · <a href="/return">Обмен и возврат</a></p></div></div></div></div>' +
       (related.length ? '<section class="section section--paper2"><div class="container"><div class="section-head"><div class="section-head__text"><h2 class="h2">Похожие товары</h2></div><div class="rail__nav" style="display:flex;gap:8px"><button type="button" class="rail__btn" data-rail-prev aria-label="Назад"><svg class="ic"><use href="#i-arrow-l"/></svg></button><button type="button" class="rail__btn" data-rail-next aria-label="Вперёд"><svg class="ic"><use href="#i-arrow"/></svg></button></div></div><div class="rail" data-rail><div class="rail__track" data-related></div></div></div></section>' : "");
     var relBox = $("[data-related]", root);
     related.forEach(function (q) { D.byId[q.id] = D.byId[q.id] || q; relBox.appendChild(DC.card(q)); });

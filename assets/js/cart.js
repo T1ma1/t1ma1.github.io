@@ -13,7 +13,7 @@
         if ($("[data-form='checkout']", root) === null && root.querySelector(".lead__done")) return;   // заказ отправлен — оставляем «спасибо»
         root.innerHTML = '<div class="empty"><span class="empty__art" data-pattern="peonies-blush" data-pattern-cm="40"></span><h2 class="h2">В корзине <em>пока пусто</em></h2>' +
           '<p class="muted">Начните с примерочной — или пройдите подбор, и мы предложим варианты под вашу комнату.</p>' +
-          '<div class="hero__cta" style="justify-content:center"><a class="btn btn--primary" href="/oboi">Перейти в каталог<svg class="ic"><use href="#i-arrow"/></svg></a><button type="button" class="btn btn--ghost" data-lead="podbor">Помочь с выбором</button></div></div>';
+          '<div class="hero__cta" style="justify-content:center"><a class="btn btn--primary" href="/product-category/oboi">Перейти в каталог<svg class="ic"><use href="#i-arrow"/></svg></a><button type="button" class="btn btn--ghost" data-lead="podbor">Помочь с выбором</button></div></div>';
         DC.paintPatterns(root);
         return;
       }
@@ -55,7 +55,7 @@
         '<div class="field full"><textarea class="field__area" id="oMsg" name="comment" placeholder=" "></textarea><label class="field__label" for="oMsg">Комментарий: удобное время звонка, этаж, пожелания</label></div>' +
         "</div>" +
         '<label class="hp" aria-hidden="true">Не заполняйте<input name="website" tabindex="-1" autocomplete="off"></label>' +
-        '<label class="check"><input type="checkbox" name="consent" required><span>Соглашаюсь на <a href="/consent.html" target="_blank">обработку персональных данных</a>, принимаю условия <a href="/offer.html" target="_blank">публичной оферты</a> и <a href="/privacy.html" target="_blank">политики конфиденциальности</a></span></label>' +
+        '<label class="check"><input type="checkbox" name="consent" required><span>Соглашаюсь на <a href="/consent" target="_blank">обработку персональных данных</a>, принимаю условия <a href="/public-offer" target="_blank">публичной оферты</a> и <a href="/privacy-policy" target="_blank">политики конфиденциальности</a></span></label>' +
         '<button class="btn btn--primary btn--lg" type="submit" style="align-self:flex-start">Отправить заказ<svg class="ic"><use href="#i-arrow"/></svg></button>' +
         "</form></div></div>" +
         '<aside class="summary"><p class="eyebrow">Ваш заказ</p>' +
@@ -103,7 +103,7 @@
       $("[data-fav-actions]").hidden = !ids.length;
       if (!ids.length) {
         grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><span class="empty__art" data-pattern="ginkgo-gold" data-pattern-cm="40"></span><h2 class="h2">Здесь будут <em>любимые</em> обои</h2>' +
-          '<p class="muted">Нажимайте на сердечко в каталоге — сравните варианты и примерьте их на стенах.</p><a class="btn btn--primary" href="/oboi">В каталог<svg class="ic"><use href="#i-arrow"/></svg></a></div>';
+          '<p class="muted">Нажимайте на сердечко в каталоге — сравните варианты и примерьте их на стенах.</p><a class="btn btn--primary" href="/product-category/oboi">В каталог<svg class="ic"><use href="#i-arrow"/></svg></a></div>';
         DC.paintPatterns(grid);
         return;
       }

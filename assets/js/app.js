@@ -145,7 +145,7 @@
         b.classList.toggle("is-on", on); b.setAttribute("aria-pressed", on);
         var u = $("use", b); if (u) u.setAttribute("href", on ? "#i-heart-fill" : "#i-heart");
       });
-      toast(on ? { title: "Добавили в избранное", text: p.title, product: p, link: { href: "/favorites.html", text: "Открыть" } } : { title: "Убрали из избранного", text: p.title, icon: "i-heart" });
+      toast(on ? { title: "Добавили в избранное", text: p.title, product: p, link: { href: "/wishlist", text: "Открыть" } } : { title: "Убрали из избранного", text: p.title, icon: "i-heart" });
       return;
     }
     var a = e.target.closest("[data-add]");
@@ -153,7 +153,7 @@
       e.preventDefault();
       var pid = a.getAttribute("data-add"), qty = +(a.getAttribute("data-qty") || 1), pr = D.byId[pid];
       cart.add(pid, qty);
-      toast({ title: "В корзине: " + pr.title, text: qty + " " + (pr.unit === "м²" ? "м²" : plural(qty, "рулон", "рулона", "рулонов")) + " · " + rub(pr.price * qty), product: pr, link: { href: "/cart.html", text: "Оформить" } });
+      toast({ title: "В корзине: " + pr.title, text: qty + " " + (pr.unit === "м²" ? "м²" : plural(qty, "рулон", "рулона", "рулонов")) + " · " + rub(pr.price * qty), product: pr, link: { href: "/cart", text: "Оформить" } });
     }
   });
 
@@ -426,7 +426,7 @@
         '<div class="field"><input class="field__input" id="qPhone" name="phone" type="tel" inputmode="tel" placeholder=" " autocomplete="tel" required data-phone><label class="field__label" for="qPhone">Телефон</label></div></div>' +
         '<fieldset class="seg" aria-label="Куда прислать"><label><input type="radio" name="via" value="WhatsApp" checked><span>WhatsApp</span></label><label><input type="radio" name="via" value="Telegram"><span>Telegram</span></label><label><input type="radio" name="via" value="Звонок"><span>Звонок</span></label></fieldset>' +
         '<label class="hp" aria-hidden="true">Не заполняйте<input name="website" tabindex="-1" autocomplete="off"></label>' +
-        '<label class="check"><input type="checkbox" name="consent" required><span>Соглашаюсь на <a href="/consent.html" target="_blank">обработку персональных данных</a> и с <a href="/privacy.html" target="_blank">политикой конфиденциальности</a></span></label>' +
+        '<label class="check"><input type="checkbox" name="consent" required><span>Соглашаюсь на <a href="/consent" target="_blank">обработку персональных данных</a> и с <a href="/privacy-policy" target="_blank">политикой конфиденциальности</a></span></label>' +
         '<button type="button" class="u-link muted" data-quiz-skip style="align-self:flex-start;font-size:13.5px">Показать подборку без контактов</button>' +
         "</form>";
       $$("[data-qpat]", body).forEach(function (el) { patBg(el, D.byId[el.getAttribute("data-qpat")], 40); });
@@ -434,13 +434,13 @@
       nx.disabled = false; nx.innerHTML = "Получить подборку<svg class=\"ic\"><use href=\"#i-arrow\"/></svg>";
     } else {
       var res = quiz.result || { ok: true }, tp = quizMatches().slice(0, 6), a = quiz.ans;
-      var qs = "/catalog.html?" + [a.room ? "room=" + a.room : "", a.style && a.style.length ? "style=" + a.style.join(",") : ""].filter(Boolean).join("&");
+      var qs = "/product-category/oboi?" + [a.room ? "room=" + a.room : "", a.style && a.style.length ? "style=" + a.style.join(",") : ""].filter(Boolean).join("&");
       body.innerHTML = '<div class="quiz__done-head"><span class="lead__done-ic"><svg class="ic"><use href="#i-check"/></svg></span><div><h2 class="quiz__q" id="quizTitle">' +
         (quiz.skipped ? "Ваша подборка" : "Подборка готова") + '</h2><p class="quiz__hint" style="margin:0">' +
         (quiz.skipped ? "Понравится что-то — примерьте на стенах или оставьте заявку, посчитаем рулоны." : "Менеджер пришлёт расширенную подборку и расчёт в течение " + CFG.managerReply + ". А пока — лучшие совпадения:") + "</p></div></div>" +
         (res.ok ? "" : '<div class="note note--warn" style="margin-top:16px">Сервер заявок недоступен. <a href="' + res.wa + '" target="_blank" rel="noopener"><b>Отправьте подборку в WhatsApp</b></a> — так мы получим её сразу.</div>') +
         '<div class="quiz__result" data-quiz-res></div>' +
-        '<div class="hero__cta" style="margin-top:22px"><a class="btn btn--primary" href="/primerka.html?p=' + tp[0].id + '">Примерить на стенах<svg class="ic"><use href="#i-arrow"/></svg></a><a class="btn btn--ghost" href="' + qs + '">Смотреть всё в каталоге</a></div>';
+        '<div class="hero__cta" style="margin-top:22px"><a class="btn btn--primary" href="/primerka?p=' + tp[0].id + '">Примерить на стенах<svg class="ic"><use href="#i-arrow"/></svg></a><a class="btn btn--ghost" href="' + qs + '">Смотреть всё в каталоге</a></div>';
       var box = $("[data-quiz-res]", body);
       tp.forEach(function (p) { box.appendChild(card(p, { cm: 50 })); });
     }
@@ -503,7 +503,7 @@
       out.innerHTML = r.items.length ? r.items.map(function (p) {
         var u = D.img(p);
         return '<a class="sres" href="/product/' + encodeURIComponent(p.id) + '"><span class="sres__sw">' + (u ? '<img src="' + esc(u) + '" alt="" loading="lazy">' : "") + '</span><span><span class="sres__t">' + esc(p.title) + '</span><br><span class="sres__s">Арт.: ' + esc(p.sku) + '</span></span><span class="sres__p">' + rub(p.price) + "</span></a>";
-      }).join("") + '<a class="sres sres--all" href="/oboi?q=' + encodeURIComponent(q) + '"><span></span><span class="sres__t">Все результаты — ' + r.total + '</span><span class="sres__p">→</span></a>'
+      }).join("") + '<a class="sres sres--all" href="/product-category/oboi?q=' + encodeURIComponent(q) + '"><span></span><span class="sres__t">Все результаты — ' + r.total + '</span><span class="sres__p">→</span></a>'
         : '<p class="search__empty">По запросу «' + esc(q) + '» ничего не нашли. Попробуйте бренд, коллекцию или артикул.</p>';
     }
     input.addEventListener("input", function () {
@@ -564,7 +564,7 @@
     var page = document.body.getAttribute("data-page");
     $$(".nav__link[href], .tabbar__a[data-tab]").forEach(function (a) {
       var href = (a.getAttribute("href") || "").split("?")[0];
-      if (href === page + ".html") { a.setAttribute("aria-current", "page"); a.classList.add("is-on"); }
+      if (href === location.pathname || href === page + ".html") { a.setAttribute("aria-current", "page"); a.classList.add("is-on"); }
     });
   })();
 

@@ -66,9 +66,9 @@
     end.className = "hcard hcard--end";
     end.innerHTML = '<p class="eyebrow">Весь ассортимент</p><p class="h3">Больше <em>30&nbsp;000</em> товаров для стен</p>' +
       '<p class="muted">Фильтры по бренду, коллекции, цвету, помещению и размеру рулона.</p>' +
-      '<a class="btn btn--primary" href="/oboi">Открыть каталог<svg class="ic"><use href="#i-arrow"/></svg></a>' +
+      '<a class="btn btn--primary" href="/product-category/oboi">Открыть каталог<svg class="ic"><use href="#i-arrow"/></svg></a>' +
       '<div class="hcard__chips"><button type="button" class="chip" data-lead="paint">Краска</button><button type="button" class="chip" data-lead="moulding">Лепнина</button>' +
-      '<a class="chip" href="/oboi/vid-oboev-fotooboi-i-panno">Фрески</a><a class="chip" href="/oboi?sort=sale">Скидки</a></div>';
+      '<a class="chip" href="/product-category/freski">Фрески</a><a class="chip" href="/product-category/oboi/tovary-po-skidke">Скидки</a></div>';
     box.appendChild(end);
   })();
 

@@ -22,7 +22,7 @@
     if (st.sale) p.set("sale", "1");
     if (st.sort !== "pop") p.set("sort", st.sort);
     var s = p.toString();
-    history.replaceState(null, "", "/catalog.html" + (s ? "?" + s : ""));
+    history.replaceState(null, "", "/product-category/oboi" + (s ? "?" + s : ""));
   }
   function match(p, skip) {
     if (st.q && DC.search(st.q).indexOf(p) < 0) return false;
@@ -137,7 +137,7 @@
     grid.innerHTML = "";
     if (!list.length) {
       grid.innerHTML = '<div class="cat__empty" style="grid-column:1/-1"><p class="h3">Ничего не нашлось</p><p class="muted">Попробуйте убрать часть фильтров — или доверьте подбор нам.</p><div class="hero__cta" style="justify-content:center"><button type="button" class="btn btn--primary" data-quiz>Подобрать за 1 минуту</button><button type="button" class="btn btn--ghost" data-rm-all>Сбросить фильтры</button></div></div>';
-      var r = $("[data-rm-all]", grid); if (r) r.addEventListener("click", function () { $('[data-rm="all"]') ? $('[data-rm="all"]').click() : (location.href = "/catalog.html"); });
+      var r = $("[data-rm-all]", grid); if (r) r.addEventListener("click", function () { $('[data-rm="all"]') ? $('[data-rm="all"]').click() : (location.href = "/product-category/oboi"); });
     }
     list.slice(0, shown).forEach(function (p, i) {
       if (i === 6 && list.length > 8) grid.appendChild(promo());

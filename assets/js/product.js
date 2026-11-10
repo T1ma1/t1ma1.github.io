@@ -39,7 +39,7 @@
   qtyEl.addEventListener("input", function () { setQty(+qtyEl.value); });
   $("[data-buy]", info).addEventListener("click", function () {
     DC.cart.add(p.id, +qtyEl.value);
-    DC.toast({ title: "В корзине: " + p.title, text: qtyEl.value + " " + (isMural ? "м²" : DC.plural(+qtyEl.value, "рулон", "рулона", "рулонов")) + " · " + DC.rub(p.price * qtyEl.value), product: p, link: { href: "/cart.html", text: "Оформить" } });
+    DC.toast({ title: "В корзине: " + p.title, text: qtyEl.value + " " + (isMural ? "м²" : DC.plural(+qtyEl.value, "рулон", "рулона", "рулонов")) + " · " + DC.rub(p.price * qtyEl.value), product: p, link: { href: "/cart", text: "Оформить" } });
   });
 
   /* ---------- сколько рулонов ---------- */

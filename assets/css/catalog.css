@@ -234,3 +234,10 @@ img.mega__promo-art { width: 100%; height: 100%; object-fit: cover; }
 .ptabs__nav { overflow-x: auto; scrollbar-width: none; }
 .ptabs__nav::-webkit-scrollbar { display: none; }
 .ptabs__nav button { white-space: nowrap; }
+
+/* разделы как на старом decando.ru: Обои / Флизелиновые / Виниловые / Под покраску / Скидки / Фрески */
+.catnav { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin-top: 20px; padding-bottom: 2px; }
+.catnav::-webkit-scrollbar { display: none; }
+.catnav a { flex: none; padding: 9px 16px; border: 1px solid var(--line); border-radius: 999px; font-size: 14px; color: var(--ink); white-space: nowrap; transition: border-color .2s, background .2s, color .2s; }
+.catnav a:hover { border-color: var(--ink); }
+.catnav a.is-on { background: var(--ink); border-color: var(--ink); color: #fff; }

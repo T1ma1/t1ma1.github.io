@@ -29,7 +29,7 @@
     try { localStorage.setItem(KEY, JSON.stringify(cache)); } catch (e) { /* приватный режим */ }
     return p;
   }
-  function img(p, big) { var u = p && (big ? p.img || p.thumb : p.thumb || p.img); return u ? (/^(https?:|/assets/)/.test(u) ? u : media + u) : ""; }
+  function img(p, big) { var u = p && (big ? p.img || p.thumb : p.thumb || p.img); return u ? (/^(https?:|\/assets\/)/.test(u) ? u : media + u) : ""; }
   function rub(n) { return Math.round(n).toLocaleString("ru-RU").replace(/,/g, " ") + " ₽"; }
   function sizeLabel(p) { return p.roll ? String(p.roll[0]).replace(".", ",") + " × " + String(p.roll[1]).replace(".", ",") + " м" : (p.type === "mural" ? "по размеру стены" : ""); }
   function related(p, n) { return products.filter(function (q) { return q !== p && q.brand === p.brand; }).slice(0, n || 8); }
