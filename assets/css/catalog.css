@@ -1,0 +1,184 @@
+/* ============================================================
+   DECANDO — дополнения к дизайн-системе (main.css) для настоящего каталога.
+   Только то, чего не было в прошлом редизайне: карточки с фото товаров,
+   заглушка «фото уточняется», галерея карточки товара, поиск с фото,
+   блоки главной по правкам клиента (магазины, цифры, примерочная одной строкой).
+   Шрифты, цвета и шапка — из main.css, ничего не переопределяем.
+   ============================================================ */
+
+/* ---------- карточка товара в списках ---------- */
+.pcard { gap: 12px; }
+.pcard__media { display: block; aspect-ratio: 4 / 5; background: var(--paper-2); }
+.pcard__media::after { display: none; }
+.pcard__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 1s var(--ease); }
+.pcard:hover .pcard__img { transform: scale(1.05); }
+.pcard__noimg, .pcard__media.is-noimg::before {
+  position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 70px 18px 0;
+  font: 500 19px/1.2 var(--display); color: var(--ink-2); opacity: 1; z-index: 0;
+  background: url("../img/logo-mark.svg") no-repeat center calc(50% - 24px) / 34px auto, linear-gradient(160deg, #f6f6f6, #ececec);
+}
+.pcard__media.is-noimg::before { content: attr(data-ph); }
+.pcard__body { gap: 4px; }
+.pcard__sku { font: 600 11px/1.2 var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.pcard__title { font: 500 21px/1.12 var(--display); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pcard__title a:hover { color: var(--green); }
+.pcard__foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 4px; }
+.pcard__price { margin: 0; }
+.pcard__cart {
+  position: relative; z-index: 2; flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+  border: 1px solid var(--line-2); transition: background .25s, color .25s, border-color .25s, transform .25s var(--ease);
+}
+.pcard__cart:hover { background: var(--green); border-color: var(--green); color: #fff; transform: scale(1.06); }
+.pcard__cart .ic { width: 18px; height: 18px; }
+
+/* ---------- поиск: результаты с фото ---------- */
+.sres__sw { overflow: hidden; background: var(--paper-2); }
+.sres__sw img { width: 100%; height: 100%; object-fit: cover; }
+.sres--all .sres__t { color: var(--green); }
+
+/* ---------- шапка: телефон вместо кнопки квиза, меню «Каталог» ---------- */
+.header__phone { margin-left: 10px; font-weight: 600; font-size: 15px; white-space: nowrap; transition: color .2s; }
+.header__phone:hover { color: var(--green); }
+@media (max-width: 1180px) { .header__phone { display: none; } }
+.mega__in { grid-template-columns: repeat(3, 1fr) 1.25fr 1.15fr; }
+.mega__col--cats { gap: 8px; }
+.mega__cat { display: flex; align-items: center; gap: 12px; padding: 6px 8px 6px 6px !important; border-radius: 12px; text-align: left; transition: background .2s, transform .25s var(--ease) !important; }
+.mega__cat:hover { background: var(--paper-2); transform: translateX(3px); }
+.mega__cat img { width: 52px; height: 40px; object-fit: contain; border-radius: 8px; background: var(--paper-2); flex: none; }
+.mega__cat span { display: flex; flex-direction: column; gap: 2px; }
+.mega__cat b { font-weight: 600; font-size: 15px; color: var(--ink); }
+.mega__cat small { font-size: 12.5px; color: var(--muted); }
+img.mega__promo-art { width: 100%; height: 100%; object-fit: cover; }
+
+/* ---------- первый экран: интерьеры в арке вместо примерочной ---------- */
+.hero__slides { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; }
+.hero__slide { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: scale(1.06); transition: opacity 1.4s var(--ease), transform 6s linear; }
+.hero__slide.is-on { opacity: 1; transform: scale(1); }
+.sample__sw { overflow: hidden; }
+.sample__sw img { width: 100%; height: 100%; object-fit: cover; }
+.hero__card-sw { overflow: hidden; }
+.hero__card-sw img { width: 100%; height: 100%; object-fit: cover; }
+.hero__title--shop em { white-space: nowrap; }
+
+/* ---------- магазины: фото, вкладки городов, адрес и карта ---------- */
+.shops { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, .8fr) minmax(0, 1.3fr); gap: clamp(16px, 2vw, 28px); align-items: stretch; }
+.shops__photo { border-radius: var(--arch); overflow: hidden; min-height: 420px; position: relative; }
+.shops__photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 1.4s var(--ease); }
+.shops:hover .shops__photo img { transform: scale(1.04); }
+.shops__side { display: flex; flex-direction: column; gap: 18px; }
+.shops__tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.shops__tabs button { height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line-2); font-size: 14px; font-weight: 500; transition: background .25s, color .25s, border-color .25s; }
+.shops__tabs button:hover { border-color: var(--ink); }
+.shops__tabs button.is-on { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.shops__info { display: flex; flex-direction: column; gap: 16px; padding: 26px; border-radius: var(--r-lg); background: var(--paper-2); flex: 1; }
+.shops__info.is-swap > * { animation: fadeUp .5s var(--ease) both; }
+.shops__info.is-swap > :nth-child(2) { animation-delay: .05s; } .shops__info.is-swap > :nth-child(3) { animation-delay: .1s; } .shops__info.is-swap > :nth-child(4) { animation-delay: .15s; } .shops__info.is-swap > :nth-child(5) { animation-delay: .2s; }
+.shops__city { font: 500 clamp(30px, 2.6vw, 40px)/1 var(--display); }
+.shops__row { display: flex; flex-direction: column; gap: 4px; }
+.shops__row span { font: 600 11px/1.2 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.shops__row b { font-weight: 500; font-size: 16px; line-height: 1.4; }
+.shops__row a:hover { color: var(--green); }
+.shops__acts { display: flex; align-items: center; gap: 6px; margin-top: auto; }
+.shops__map { position: relative; min-height: 420px; border-radius: var(--r-lg); overflow: hidden; background: var(--paper-3); }
+.shops__map iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; filter: grayscale(.2) sepia(.08); }
+
+/* ---------- о компании: цифры одним шрифтом (правка 7) ---------- */
+.about2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 80px); align-items: center; }
+.about2__text { display: flex; flex-direction: column; gap: 22px; }
+.nums { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-top: 1px solid var(--line); }
+.nums__i { display: flex; flex-direction: column; gap: 10px; padding: 28px 24px 28px 0; border-bottom: 1px solid var(--line); }
+.nums__i:nth-child(even) { padding-left: 24px; border-left: 1px solid var(--line); }
+.nums__i b { font: 600 clamp(36px, 3.6vw, 54px)/1 var(--sans); letter-spacing: -.035em; color: var(--ink); }
+.nums__i > span { font-size: 14px; line-height: 1.45; color: var(--muted); max-width: 24ch; }
+
+/* ---------- примерочная — одно упоминание на главной (правка 10) ---------- */
+.studio-strip {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 22px; margin-top: 28px; padding: 14px 22px 14px 14px;
+  border-radius: 999px; border: 1px solid var(--line); background: var(--card); transition: border-color .3s, box-shadow .3s var(--ease);
+}
+.studio-strip:hover { border-color: var(--line-2); box-shadow: var(--shadow); }
+.studio-strip__img { width: 92px; height: 64px; border-radius: 999px; overflow: hidden; }
+.studio-strip__img img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s var(--ease); }
+.studio-strip:hover .studio-strip__img img { transform: scale(1.08); }
+.studio-strip__t { display: flex; flex-direction: column; gap: 2px; }
+.studio-strip__t b { font: 500 22px/1.1 var(--display); }
+.studio-strip__t span { font-size: 14px; color: var(--muted); }
+.studio-strip__go { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: var(--green); color: #fff; transition: transform .35s var(--ease); }
+.studio-strip:hover .studio-strip__go { transform: translateX(4px); }
+
+/* ---------- финальная заявка: фото вместо рисунка ---------- */
+.cta-final__photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .16; pointer-events: none; }
+
+/* ---------- карточка товара /product: сначала крупное фото (правка 16) ---------- */
+.pgal { display: grid; grid-template-columns: 84px 1fr; gap: 14px; position: sticky; top: calc(var(--header-h) + 18px); }
+.pgal:not(:has(.pgal__thumbs)) { grid-template-columns: 1fr; }
+.pgal__thumbs { display: flex; flex-direction: column; gap: 10px; }
+.pgal__thumb { aspect-ratio: 1; border-radius: 12px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); transition: box-shadow .25s; background: var(--paper-2); position: relative; }
+.pgal__thumb img { width: 100%; height: 100%; object-fit: cover; }
+.pgal__thumb.is-on { box-shadow: inset 0 0 0 2px var(--ink); }
+.pgal__main { position: relative; aspect-ratio: 1 / 1.08; border-radius: var(--r-lg); overflow: hidden; background: var(--paper-2); cursor: zoom-in; }
+.pgal__main img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s var(--ease), opacity .3s; }
+.pgal__main img.is-swap { opacity: .3; }
+.pgal__main.is-zoom img { transform: scale(2); }
+.pgal__main.is-noimg { cursor: default; }
+.pgal__main.is-noimg::before {
+  content: attr(data-ph) "\A Фото уточняется — пришлём по запросу"; white-space: pre-line; position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 96px 24px 0;
+  font: 500 26px/1.35 var(--display); color: var(--ink-2);
+  background: url("../img/logo-mark.svg") no-repeat center calc(50% - 40px) / 52px auto, linear-gradient(160deg, #f6f6f6, #ececec);
+}
+.pgal__badges { position: absolute; left: 16px; top: 16px; z-index: 2; display: flex; gap: 6px; }
+.pinfo__sku { font: 600 12px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.pinfo__title { font: 500 clamp(34px, 3.4vw, 52px)/1.02 var(--display); }
+.pinfo__brand { display: block; text-transform: none; letter-spacing: 0; font: 400 15px/1.5 var(--sans); color: var(--ink-2); }
+.pinfo__brand a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: 3px; }
+.pinfo__brand a:hover { color: var(--green); }
+.pinfo__tones-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.tone-img { width: 54px; height: 64px; border-radius: 999px 999px 8px 8px; overflow: hidden; background: var(--paper-2); box-shadow: inset 0 0 0 1px var(--line); transition: transform .25s var(--ease), box-shadow .25s; }
+.tone-img img { width: 100%; height: 100%; object-fit: cover; }
+.tone-img:hover { transform: translateY(-3px); }
+.tone-img.is-on { box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--ink); }
+.tone-img.is-noimg { background: url("../img/logo-mark.svg") no-repeat center / 22px auto, var(--paper-2); }
+
+/* ---------- адаптив ---------- */
+@media (max-width: 1080px) {
+  .shops { grid-template-columns: 1fr 1fr; }
+  .shops__photo { display: none; }
+  .about2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 900px) {
+  .pgal { position: static; grid-template-columns: 1fr; }
+  .pgal__thumbs { flex-direction: row; order: 2; overflow-x: auto; }
+  .pgal__thumb { width: 64px; flex: none; }
+  .mega__in { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 760px) {
+  .shops { grid-template-columns: 1fr; }
+  .shops__map { min-height: 300px; }
+  .studio-strip { grid-template-columns: auto 1fr; border-radius: var(--r-lg); }
+  .studio-strip__go { display: none; }
+  .nums__i { padding-right: 12px; }
+  .nums__i:nth-child(even) { padding-left: 14px; }
+  .pcard__title { font-size: 18px; }
+}
+
+/* цифры под первым экраном — одним шрифтом и в одну строку (правка 7) */
+.hero__trust { display: grid; grid-template-columns: repeat(4, auto); justify-content: start; gap: 10px 26px; padding-top: 14px; font-size: 12.5px; line-height: 1.35; }
+.hero__trust b { font: 600 20px/1.15 var(--sans); letter-spacing: -.02em; margin-bottom: 3px; white-space: nowrap; }
+@media (max-width: 1240px) { .hero__trust { grid-template-columns: repeat(2, auto); } }
+@media (max-width: 760px) { .hero__trust b { font-size: 18px; } }
+.shops__mapimg { position: absolute; inset: 0; display: block; }
+.shops__mapimg img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.85); transition: transform 1.2s var(--ease); }
+.shops__mapimg:hover img { transform: scale(1.03); }
+.shops__mapgo { position: absolute; left: 16px; bottom: 16px; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 999px; background: rgba(255, 255, 255, .94); font-size: 13.5px; font-weight: 600; box-shadow: var(--shadow); }
+.shops__mapgo .ic { width: 16px; height: 16px; color: var(--green); }
+
+/* фото шоурумов (прислал клиент) — сменяются плавно */
+.shops__photo img { opacity: 0; transform: scale(1.06); transition: opacity 1.1s var(--ease), transform 5s linear; }
+.shops__photo img.is-on { opacity: 1; transform: scale(1); }
+.shops:hover .shops__photo img.is-on { transform: scale(1.02); }
+.shops__dots { position: absolute; left: 0; right: 0; bottom: 16px; z-index: 2; display: flex; justify-content: center; gap: 5px; }
+.shops__dots button { width: 7px; height: 7px; border-radius: 50%; background: rgba(255, 255, 255, .55); transition: width .3s var(--ease), background .3s; }
+.shops__dots button.is-on { width: 20px; border-radius: 4px; background: #fff; }
+
+.price-ask { font-weight: 600; color: var(--green); }
+.pcard__price .price-ask { font-size: 14px; }
