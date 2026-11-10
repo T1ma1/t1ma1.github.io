@@ -182,3 +182,55 @@ img.mega__promo-art { width: 100%; height: 100%; object-fit: cover; }
 
 .price-ask { font-weight: 600; color: var(--green); }
 .pcard__price .price-ask { font-size: 14px; }
+
+/* первый экран: пока фото грузится — тёплый фон и мягкий блик, а не пустая серая арка */
+.hero__slides { background: linear-gradient(120deg, #efe7dc, #f6f1ea 45%, #e9e0d3); }
+.hero__slides::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, .45) 50%, transparent 70%); background-size: 220% 100%; animation: heroShimmer 1.8s linear infinite; z-index: 0; pointer-events: none; }
+.hero__slide { z-index: 1; }
+.hero__slides:has(.hero__slide.is-on[src]) ::after { }
+@keyframes heroShimmer { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+.hero__card { transition: transform .4s var(--ease), opacity .26s var(--ease); }
+.hero__card.is-swap { opacity: 0; transform: translateY(6px); }
+.hero__card-dots { position: absolute; left: 50%; bottom: -16px; transform: translateX(-50%); display: flex; gap: 4px; }
+.hero__card-dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(30, 30, 30, .18); transition: width .3s var(--ease), background .3s; }
+.hero__card-dots i.is-on { width: 16px; border-radius: 3px; background: var(--green); }
+
+/* плитки разделов: интерьер на всю плитку, текст на светлой плашке */
+.ctile--photo { background: #e9e4dd; color: #fff; isolation: isolate; }
+.ctile--photo:hover { background: #e9e4dd; }
+.ctile__img--photo { position: absolute; inset: 0; right: 0; bottom: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; transform: scale(1.02); }
+.ctile--photo::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(20, 16, 12, .55) 0%, rgba(20, 16, 12, .12) 55%, rgba(20, 16, 12, .35) 100%); transition: opacity .4s; }
+.ctile--photo .ctile__n { color: rgba(255, 255, 255, .85); }
+.ctile--photo:hover .ctile__img--photo { transform: scale(1.08); }
+.ctile--photo .ctile__t { text-shadow: 0 1px 12px rgba(0, 0, 0, .25); }
+
+/* форма заявки: интерьер виден, текст читается */
+.cta-final__photo { opacity: 1; }
+.cta-final::before { content: ""; position: absolute; inset: 0; z-index: 0; background: linear-gradient(90deg, rgba(22, 18, 16, .86) 0%, rgba(22, 18, 16, .62) 48%, rgba(22, 18, 16, .35) 100%); pointer-events: none; }
+.cta-final__form { background: rgba(255, 255, 255, .08) !important; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-left: 1px solid rgba(255, 255, 255, .12); }
+@media (max-width: 1080px) { .cta-final::before { background: linear-gradient(180deg, rgba(22, 18, 16, .78), rgba(22, 18, 16, .88)); } .cta-final__form { border-left: 0; border-top: 1px solid rgba(255, 255, 255, .12); } }
+/* читаемость текста на фото */
+.ctile--photo::before { background: linear-gradient(90deg, rgba(18, 14, 11, .78) 0%, rgba(18, 14, 11, .45) 45%, rgba(18, 14, 11, .08) 100%); }
+.ctile--photo .ctile__t { font-weight: 600; }
+.cta-final::before { background: linear-gradient(90deg, rgba(20, 16, 14, .9) 0%, rgba(20, 16, 14, .78) 50%, rgba(20, 16, 14, .6) 100%); }
+.cta-final__photo { filter: saturate(.85); }
+.cta-final { isolation: isolate; }
+.cta-final__photo { z-index: -1; }
+.cta-final::before { z-index: 0; }
+.ctile__img--photo { z-index: -2 !important; }
+
+/* карточка товара — минималистично (замечание клиента) */
+.pinfo { gap: 16px; }
+.pinfo__specs { grid-template-columns: repeat(2, 1fr) !important; }
+.pcalc { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.pcalc summary { display: flex; align-items: center; gap: 10px; padding: 14px 0; cursor: pointer; font-weight: 500; list-style: none; }
+.pcalc summary::-webkit-details-marker { display: none; }
+.pcalc summary::after { content: "+"; margin-left: auto; font-size: 20px; line-height: 1; color: var(--muted); transition: transform .3s var(--ease); }
+.pcalc[open] summary::after { transform: rotate(45deg); }
+.pcalc summary .ic { width: 18px; height: 18px; color: var(--green); }
+.pcalc .mini-calc { border: 0; padding: 0 0 16px; background: none; }
+.pinfo__more { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 13.5px; color: var(--muted); }
+.pinfo__more .u-link { color: var(--ink); font-weight: 500; }
+.ptabs__nav { overflow-x: auto; scrollbar-width: none; }
+.ptabs__nav::-webkit-scrollbar { display: none; }
+.ptabs__nav button { white-space: nowrap; }

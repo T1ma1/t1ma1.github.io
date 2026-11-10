@@ -8,16 +8,34 @@
   /* число обоев — из каталога */
   $$("[data-total]").forEach(function (el) { el.textContent = fmt(D.total) + " " + DC.plural(D.total, "товар", "товара", "товаров"); });
 
-  /* ---------- первый экран: интерьеры сменяют друг друга в арке ---------- */
+  /* ---------- первый экран: интерьеры коллекций сменяют друг друга в арке, карточка — вместе с ними ---------- */
   (function () {
-    var box = $("[data-hero-slides]"); if (!box || reduce) return;
-    var slides = $$(".hero__slide", box), cur = 0;
-    setInterval(function () {
-      if (document.hidden) return;
+    var box = $("[data-hero-slides]"); if (!box) return;
+    var slides = $$(".hero__slide", box), card = $("[data-hero-card]"), cur = 0, timer = 0;
+    var dots = card && $("[data-hero-dots]", card);
+    if (dots) slides.forEach(function (s, i) { var d = document.createElement("i"); if (!i) d.className = "is-on"; dots.appendChild(d); });
+    function show(i) {
       slides[cur].classList.remove("is-on");
-      cur = (cur + 1) % slides.length;
-      slides[cur].classList.add("is-on");
-    }, 5500);
+      cur = (i + slides.length) % slides.length;
+      var s = slides[cur];
+      if (s.loading === "lazy") s.loading = "eager";
+      s.classList.add("is-on");
+      if (!card) return;
+      card.classList.add("is-swap");
+      setTimeout(function () {
+        $("[data-hero-card-eyebrow]", card).textContent = s.getAttribute("data-eyebrow");
+        $("[data-hero-card-title]", card).textContent = s.getAttribute("data-title");
+        $("[data-hero-card-sub]", card).textContent = s.getAttribute("data-sub");
+        $("[data-hero-card-img]", card).src = s.currentSrc || s.src;
+        card.href = "/" + s.getAttribute("data-href");
+        if (dots) $$("i", dots).forEach(function (d, k) { d.classList.toggle("is-on", k === cur); });
+        card.classList.remove("is-swap");
+      }, 260);
+    }
+    function loop() { clearTimeout(timer); timer = setTimeout(function () { if (!document.hidden) show(cur + 1); loop(); }, reduce ? 9000 : 5200); }
+    /* следующий кадр подгружаем заранее, чтобы смена была без пустой арки */
+    slides.slice(1, 3).forEach(function (s) { s.loading = "eager"; });
+    loop();
   })();
 
   /* ---------- обои по стилю: горизонтальная галерея (листается прокруткой, см. motion.js) ----------
