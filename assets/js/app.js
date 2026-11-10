@@ -618,7 +618,12 @@
 
   /* ---------- фото не загрузилось — аккуратная заглушка «бренд · артикул» вместо битой картинки ---------- */
   var IMG_SEL = ".pcard__img, .pgal__main img, .sres__sw img, .tone-img img, .pgal__thumb img";
-  function imgFail(img) { var box = img.parentNode; if (box) box.classList.add("is-noimg"); img.style.display = "none"; }
+  function imgFail(img) {
+    var box = img.parentNode; if (box) box.classList.add("is-noimg"); img.style.display = "none";
+    /* миниатюра без фото в галерее товара — убираем; если осталась одна, прячем ленту */
+    var th = img.closest && img.closest(".pgal__thumb");
+    if (th) { var list = th.parentNode; th.parentNode.removeChild(th); if (list && list.children.length < 2) list.style.display = "none"; }
+  }
   document.addEventListener("error", function (e) { var t = e.target; if (t && t.tagName === "IMG" && t.matches(IMG_SEL)) imgFail(t); }, true);
   $$(IMG_SEL).forEach(function (img) { if (img.complete && !img.naturalWidth && img.getAttribute("src")) imgFail(img); });
 

@@ -187,7 +187,8 @@
     }
     /* активные фильтры */
     var chips = [];
-    Object.keys(active).forEach(function (k) { active[k].forEach(function (v) { chips.push([FAC.byKey[k].byV[v].label, toggle(k, v)]); }); });
+    var chipSrc = o.cat ? extra : active;
+    Object.keys(chipSrc).forEach(function (k) { chipSrc[k].forEach(function (v) { chips.push([FAC.byKey[k].byV[v].label, toggle(k, v)]); }); });
     if (br && BRANDS[br]) chips.unshift([BRANDS[br].name, brand ? ROOT : url(extra, "", sort, 1)]);
     var chipsHtml = chips.length ? '<div class="active-filters">' + chips.map(function (c) { return '<a class="chip" href="' + esc(c[1]) + '">' + esc(c[0]) + '<svg class="ic"><use href="#i-close"/></svg></a>'; }).join("") + "</div>" : "";
     /* страницы */
@@ -200,13 +201,16 @@
       win.forEach(function (n) { if (prev && n - prev > 1) pager += '<span class="pager__dots">…</span>'; pager += n === page ? '<span class="pager__n is-on">' + n + "</span>" : '<a class="pager__n" href="' + esc(url(extra, xb, sort, n)) + '">' + n + "</a>"; prev = n; });
       pager += (page < pages ? '<a class="pager__btn" href="' + esc(url(extra, xb, sort, page + 1)) + '"><span>Дальше </span>→</a>' : "") + "</nav>";
     }
+    /* тексты раздела (как в PHP-версии), только без доп. фильтров и поиска */
+    var catTxt = {}, C0 = o.cat && !xparts.length && !q && FAC.cats && FAC.cats[o.cat.slice(1)];
+    if (C0) { var tv = function (t) { return String(t || "").split("{count}").join(String(total)).split("{models}").join(plural(total, "модель", "модели", "моделей")); }; catTxt = { intro: tv(C0.intro), text: tv(C0.text) }; }
     var sorts = [["pop", "Сначала популярные"], ["cheap", "Сначала дешевле"], ["exp", "Сначала дороже"], ["new", "Сначала новинки"], ["sale", "Со скидкой"]];
     root.innerHTML =
-      '<section class="page-head"><div class="container"><nav class="crumbs" aria-label="Навигация">' + crumbs(cr) + '</nav><div class="page-head__row"><div><h1 class="page-head__title page-head__title--tag">' + esc(h1) + "</h1></div></div>" + (o.cat ? '<nav class="catnav" aria-label="Разделы каталога">' + Object.keys(CATS).map(function (c) { return '<a href="' + c + '"' + (c === o.cat ? ' class="is-on" aria-current="page"' : "") + ">" + CATS[c].label + "</a>"; }).join("") + "</nav>" : "") + "</div></section>" +
+      '<section class="page-head"><div class="container"><nav class="crumbs" aria-label="Навигация">' + crumbs(cr) + '</nav><div class="page-head__row"><div><h1 class="page-head__title page-head__title--tag">' + esc(h1) + "</h1>" + (catTxt.intro ? '<p class="page-head__sub">' + catTxt.intro + "</p>" : "") + "</div></div>" + (o.cat ? '<nav class="catnav" aria-label="Разделы каталога">' + Object.keys(CATS).map(function (c) { return '<a href="' + c + '"' + (c === o.cat ? ' class="is-on" aria-current="page"' : "") + ">" + CATS[c].label + "</a>"; }).join("") + "</nav>" : "") + "</div></section>" +
       '<div class="container cat"><aside class="filters" data-filters aria-label="Фильтры"><div class="filters__head"><b class="h3" style="font-size:28px">Фильтры</b><button type="button" class="iconbtn" data-filters-close aria-label="Закрыть фильтры"><svg class="ic"><use href="#i-close"/></svg></button></div>' + side + "</aside><div>" +
       '<div class="cat__bar"><p class="cat__count"><b>' + total + "</b> " + plural(total, "модель", "модели", "моделей") + '</p><div class="cat__tools"><button type="button" class="btn btn--ghost btn--sm cat__filter-btn" data-filters-open><svg class="ic"><use href="#i-filter"/></svg>Фильтры</button><select class="sort" data-sort aria-label="Сортировка">' +
       sorts.map(function (s) { return '<option value="' + s[0] + '"' + (s[0] === sort ? " selected" : "") + ">" + s[1] + "</option>"; }).join("") + "</select></div></div>" + chipsHtml +
-      (total ? '<div class="pgrid" data-grid></div>' + pager : '<div class="cat__empty"><p class="h3">Ничего не нашлось</p><p class="muted">Попробуйте убрать часть фильтров.</p><a class="btn btn--ghost" href="/product-category/oboi">Все обои</a></div>') + "</div></div>";
+      (total ? '<div class="pgrid" data-grid></div>' + pager : '<div class="cat__empty"><p class="h3">Ничего не нашлось</p><p class="muted">Попробуйте убрать часть фильтров.</p><a class="btn btn--ghost" href="/product-category/oboi">Все обои</a></div>') + (catTxt.text ? '<section class="seo-text prose">' + catTxt.text + "</section>" : "") + "</div></div>";
     var grid = $("[data-grid]", root);
     shown.forEach(function (p) { D.byId[p.id] = D.byId[p.id] || p; if (grid) grid.appendChild(DC.card(p)); });
     DC.hydrateCards(root);
