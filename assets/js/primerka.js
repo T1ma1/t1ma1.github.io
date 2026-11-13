@@ -5,7 +5,7 @@
    ============================================================ */
 (function () {
   "use strict";
-  var DC = window.DC, D = window.DC_DATA_DEMO || window.DC_DATA, $ = DC.$, $$ = DC.$$, esc = DC.esc;
+  var DC = window.DC, D = window.DC_DATA, $ = DC.$, $$ = DC.$$, esc = DC.esc;
   var root = $("[data-studio]"); if (!root) return;
   var ROOMS = DC_STUDIO.ROOMS, LIGHT = DC_STUDIO.LIGHT;
   var WALL_NAMES = ["Задняя", "Левая", "Правая"], WALL_FULL = ["задняя стена", "левая стена", "правая стена"];
@@ -23,14 +23,34 @@
   ];
   var paintName = {}; PAINT.forEach(function (f) { f[2].forEach(function (c) { paintName[c[1]] = c[0]; }); });
 
+  /* ---------- обои: все товары каталога с фото (assets/data/primerka.json, собирает build.mjs) ---------- */
+  var CAT = [], COLORS = [], BY = {};
+  function WP(id) { return id ? BY[id] || null : null; }
+  function addWp(p) { if (!BY[p.id]) { BY[p.id] = p; CAT.push(p); } return BY[p.id]; }
+  function hasPhoto(p) { return /^\/assets\/img\/p\//.test(p.img || ""); }
+  function loadCat() {
+    return fetch("/assets/data/primerka.json").then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
+      COLORS = j.colors;
+      j.items.forEach(function (a) {
+        addWp({ id: a[0], sku: a[1], brand: j.brands[a[2]], title: a[3], price: a[4], old: 0, unit: "рулон", roll: a[5] ? [a[5], a[6]] : null, rapport: a[7],
+          type: a[8], typeLabel: j.types[a[9]], color: a[10] >= 0 ? j.colors[a[10]][0] : "", plain: a[11],
+          img: "/assets/img/p/" + a[0] + ".jpg", thumb: "/assets/img/p/" + a[0] + ".jpg" });
+      });
+    }).catch(function () {
+      /* список не загрузился — хотя бы подборки с главной и то, что посетитель уже смотрел */
+      Object.keys(D.byId).forEach(function (id) { var p = D.byId[id]; if (hasPhoto(p) && p.type !== "mural") addWp(p); });
+    });
+  }
+  function priceOf(p) { return p.price ? DC.rub(p.price) : "Цена по запросу"; }
+
   /* ---------- состояние интерфейса ---------- */
   var q = new URLSearchParams(location.search);
   var ui = {
     room: ROOMS[q.get("room")] ? q.get("room") : "living",
     light: LIGHT[q.get("light")] ? q.get("light") : "day",
     mode: "wp", active: "walls", wallSel: "all",
-    wp: D.byId[q.get("p")] ? q.get("p") : "shalfey-light",
-    paint: "#EFE7D8", style: "all", query: "", fam: "white",
+    wp: null,
+    paint: "#EFE7D8", color: "all", plain: "all", limit: 48, query: "", fam: "white",
     s: {}   // s[комната][0..6] = { wp: id } | { paint: hex } | null
   };
   Object.keys(ROOMS).forEach(function (k) { ui.s[k] = [null, null, null, null, null, null, null]; });
@@ -44,7 +64,7 @@
 
   function apply(room, i, spec, instant) {
     if (!studio) return;
-    if (spec && spec.wp) studio.setWall(i, D.byId[spec.wp], { room: room, instant: instant });
+    if (spec && spec.wp) studio.setWall(i, WP(spec.wp), { room: room, instant: instant });
     else if (spec && spec.paint) studio.setPaint(i, spec.paint, { room: room, instant: instant });
     else if (i < 3) studio.setWall(i, null, { room: room, instant: instant });
     else studio.setPaint(i, null, { room: room, instant: instant });
@@ -63,7 +83,7 @@
     if (undoStack.length > 80) undoStack.shift();
     var idx = changes.map(function (c) { return c.i; });
     if (studio) {
-      if (spec && spec.wp && idx.every(function (i) { return i < 3; })) studio.setWall(idx, D.byId[spec.wp]);
+      if (spec && spec.wp && idx.every(function (i) { return i < 3; })) studio.setWall(idx, WP(spec.wp));
       else idx.forEach(function (i) { apply(room, i, spec); });
     }
     sync();
@@ -75,7 +95,7 @@
     var d = document.createElement("span");
     d.className = "studio__dot";
     if (!spec) d.classList.add("is-orig");
-    else if (spec.wp) DC.patBg(d, D.byId[spec.wp], 20);
+    else if (spec.wp) DC.patBg(d, WP(spec.wp), 20);
     else d.style.background = spec.paint;
     return d;
   }
@@ -139,7 +159,8 @@
   function wallsWidth(room, idx) { var w = studio ? studio.walls(room) : [4.9, 3.6, 3.6]; return idx.reduce(function (s, i) { return s + w[i]; }, 0); }
   function rollsFor(p, room, idx) {
     if (p.type === "mural") return { n: Math.ceil(wallsWidth(room, idx) * 2.7), unit: "м²" };
-    var r = DC.rolls({ perimeter: wallsWidth(room, idx), height: 2.7, rollW: p.roll[0], rollL: p.roll[1], rapport: p.rapport, match: p.match });
+    var roll = p.roll || [1.06, 10.05];
+    var r = DC.rolls({ perimeter: wallsWidth(room, idx), height: 2.7, rollW: roll[0], rollL: roll[1], rapport: p.rapport, match: p.match });
     return { n: r.rolls, unit: DC.plural(r.rolls, "рулон", "рулона", "рулонов") };
   }
   function renderNow() {
@@ -150,11 +171,12 @@
     if (!same) {
       html = '<span class="studio__now-sw studio__now-sw--mix"></span><div class="studio__now-t"><small>' + where + '</small><b>Разные покрытия</b><span>Выберите стену, чтобы увидеть её обои</span></div>';
     } else if (spec && spec.wp) {
-      var p = D.byId[spec.wp], r = rollsFor(p, ui.room, t);
-      html = '<a class="studio__now-sw" href="/product/' + p.id + '" data-now-sw aria-label="' + esc(p.title) + '"></a><div class="studio__now-t"><small>' + where + " · " + esc(D.F.type[p.type]) + '</small><b>' + esc(p.title) + "</b>" +
-        "<span>" + DC.rub(p.price) + " " + DC.unitLabel(p) + " · ≈ " + r.n + " " + r.unit + " на " + (t.length > 1 ? "эти стены" : "эту стену") + "</span>" +
-        '<div class="studio__now-act"><button type="button" class="btn btn--light btn--sm" data-add="' + p.id + '" data-qty="' + r.n + '"><svg class="ic"><use href="#i-bag"/></svg>В корзину</button>' +
-        '<a class="btn btn--ghost-light btn--sm" href="/product/' + p.id + '">О рисунке</a>' +
+      var p = WP(spec.wp), r = rollsFor(p, ui.room, t);
+      html = '<a class="studio__now-sw" href="/product/' + p.id + '" data-now-sw aria-label="' + esc(p.title) + '"></a><div class="studio__now-t"><small>' + where + (p.typeLabel ? " · " + esc(p.typeLabel) : "") + '</small><b>' + esc(p.title) + "</b>" +
+        "<span>" + (p.price ? DC.rub(p.price) + " " + DC.unitLabel(p) : "Цена по запросу") + " · ≈ " + r.n + " " + r.unit + " на " + (t.length > 1 ? "эти стены" : "эту стену") + "</span>" +
+        '<div class="studio__now-act">' + (p.price ? '<button type="button" class="btn btn--light btn--sm" data-add="' + p.id + '" data-qty="' + r.n + '"><svg class="ic"><use href="#i-bag"/></svg>В корзину</button>'
+          : '<button type="button" class="btn btn--light btn--sm" data-lead="oneclick" data-product="' + p.id + '"><svg class="ic"><use href="#i-phone"/></svg>Узнать цену</button>') +
+        '<a class="btn btn--ghost-light btn--sm" href="/product/' + p.id + '">Характеристики</a>' +
         '<button type="button" class="studio__icon' + (DC.fav.has(p.id) ? " is-on" : "") + '" data-fav="' + p.id + '" aria-label="В избранное"><svg class="ic"><use href="#' + (DC.fav.has(p.id) ? "i-heart-fill" : "i-heart") + '"/></svg></button>' +
         '<button type="button" class="studio__icon" data-clear aria-label="Снять покрытие" title="Вернуть исходную стену"><svg class="ic"><use href="#i-close"/></svg></button></div></div>';
     } else if (spec && spec.paint) {
@@ -164,42 +186,58 @@
       html = '<span class="studio__now-sw studio__now-sw--orig"></span><div class="studio__now-t"><small>' + where + '</small><b>Как на фото</b><span>' + (ui.active === "walls" ? "Выберите обои ниже — они лягут на " + (ui.wallSel === "all" ? "все стены" : WALL_FULL[ui.wallSel]) : "Выберите цвет ниже") + "</span></div>";
     }
     box.innerHTML = html;
-    var sw = $("[data-now-sw]", box); if (sw) DC.patBg(sw, D.byId[spec.wp], 30);
+    var sw = $("[data-now-sw]", box); if (sw) DC.patBg(sw, WP(spec.wp), 30);
   }
   function filteredWp() {
-    var list = ui.query ? D.products.filter(function (p) { return (p.title + " " + p.brand + " " + p.sku).toLowerCase().indexOf(ui.query.toLowerCase()) >= 0; }) : D.products.slice().sort(function (a, b) { return b.pop - a.pop; });
-    if (ui.style !== "all") list = list.filter(function (p) { return p.style === ui.style; });
-    if (ui.room === "kids") list.sort(function (a, b) { return (b.style === "kids") - (a.style === "kids"); });
+    var list = CAT, s = ui.query.trim().toLowerCase();
+    if (s) { var words = s.split(/\s+/); list = list.filter(function (p) { var t = (p.title + " " + p.brand + " " + p.sku).toLowerCase(); return words.every(function (w) { return t.indexOf(w) >= 0; }); }); }
+    if (ui.color !== "all") list = list.filter(function (p) { return p.color === ui.color; });
+    if (ui.plain !== "all") list = list.filter(function (p) { return p.plain === (ui.plain === "plain" ? 1 : 0); });
     return list;
   }
   function renderWpChips() {
     var box = $("[data-wp-styles]"); box.innerHTML = "";
-    [["all", "Все"]].concat(Object.keys(D.F.style).map(function (k) { return [k, D.F.style[k]]; })).forEach(function (s) {
+    var chip = function (key, val, label) {
       var b = document.createElement("button");
-      b.type = "button"; b.className = "studio__chip" + (ui.style === s[0] ? " is-on" : "");
-      b.textContent = s[1];
-      b.addEventListener("click", function () { ui.style = s[0]; renderWpChips(); renderWpGrid(); });
+      b.type = "button"; b.className = "studio__chip" + (ui[key] === val ? " is-on" : "");
+      b.setAttribute("aria-pressed", ui[key] === val);
+      b.textContent = label;
+      b.addEventListener("click", function () { ui[key] = ui[key] === val ? "all" : val; ui.limit = 48; renderWpChips(); renderWpGrid(); });
       box.appendChild(b);
-    });
+    };
+    chip("plain", "plain", "Без рисунка"); chip("plain", "pattern", "С рисунком");
+    var sep = document.createElement("span"); sep.className = "studio__chip-sep"; box.appendChild(sep);
+    COLORS.forEach(function (c) { chip("color", c[0], c[1]); });
   }
   function renderWpGrid() {
     var box = $("[data-wp-grid]"), list = filteredWp(), cur = ui.s[ui.room][targets()[0]];
-    box.innerHTML = list.length ? "" : '<p class="studio__empty">Ничего не нашли — попробуйте «лён» или «зелёные».</p>';
+    var total = list.length, pin = WP(ui.wp);
+    box.innerHTML = total ? "" : '<p class="studio__empty">Ничего не нашли — попробуйте бренд, коллекцию или артикул.</p>';
+    list = list.slice(0, ui.limit);
+    /* выбранные обои всегда на виду — первыми в списке */
+    if (pin && total && !ui.query && ui.color === "all" && ui.plain === "all") { list = [pin].concat(list.filter(function (p) { return p !== pin; })); }
     list.forEach(function (p) {
       var b = document.createElement("button");
       b.type = "button"; b.className = "studio__wp" + (cur && cur.wp === p.id ? " is-on" : "");
       b.setAttribute("aria-pressed", !!(cur && cur.wp === p.id));
-      b.innerHTML = '<span class="studio__wp-sw"></span><span class="studio__wp-t"><b>' + esc(p.brand) + "</b><span>" + esc(p.sku) + "</span><em>" + DC.rub(p.price) + "</em></span>";
+      b.innerHTML = '<span class="studio__wp-sw"></span><span class="studio__wp-t"><b>' + esc(p.brand) + "</b><span>" + esc(p.sku) + "</span><em>" + priceOf(p) + "</em></span>";
       DC.patBg($(".studio__wp-sw", b), p, p.type === "mural" ? 300 : 40);
       b.addEventListener("click", function () {
-        ui.wp = p.id;
+        ui.wp = p.id; D.remember(p);
         if (ui.active !== "walls") ui.active = "walls";
         set(targets(), { wp: p.id });
       });
       b.addEventListener("pointerenter", function () { if (studio) studio.preload(p); }, { once: true });
       box.appendChild(b);
     });
-    $("[data-count-wp]").textContent = D.products.length;
+    if (total > ui.limit) {
+      var more = document.createElement("button");
+      more.type = "button"; more.className = "studio__more";
+      more.textContent = "Показать ещё · осталось " + (total - ui.limit);
+      more.addEventListener("click", function () { ui.limit += 48; renderWpGrid(); });
+      box.appendChild(more);
+    }
+    $("[data-count-wp]").textContent = CAT.length;
   }
   function renderPaint() {
     var fams = $("[data-paint-fams]"), grid = $("[data-paint-grid]"), cur = ui.s[ui.room][targets()[0]];
@@ -238,7 +276,7 @@
     Object.keys(ROOMS).forEach(function (room) {
       ui.s[room].slice(0, 3).forEach(function (spec, i) {
         if (!spec || !spec.wp) return;
-        var r = rows[spec.wp] || (rows[spec.wp] = { p: D.byId[spec.wp], where: {}, rooms: {} });
+        var r = rows[spec.wp] || (rows[spec.wp] = { p: WP(spec.wp), where: {}, rooms: {} });
         (r.where[room] = r.where[room] || []).push(i);
       });
     });
@@ -252,25 +290,25 @@
         n += rr.n;
         places.push(ROOMS[room].name + ": " + (idx.length === 3 ? "все стены" : idx.map(function (i) { return WALL_FULL[i]; }).join(", ")));
       });
-      r.n = n; r.places = places; total += n * r.p.price;
+      r.n = n; r.places = places; total += n * (r.p.price || 0);
       html += '<div class="sel__row"><a class="sel__sw" href="/product/' + id + '" data-sel-sw="' + id + '" aria-label="' + esc(r.p.title) + '"></a>' +
         '<div class="sel__t"><b>' + esc(r.p.title) + '</b><span>' + esc(places.join("; ")) + "</span></div>" +
-        '<div class="sel__q">≈ ' + n + " " + (r.p.unit === "м²" ? "м²" : DC.plural(n, "рулон", "рулона", "рулонов")) + "<small>" + DC.rub(r.p.price) + " " + DC.unitLabel(r.p) + "</small></div>" +
-        '<div class="sel__sum">' + DC.rub(n * r.p.price) + "</div>" +
+        '<div class="sel__q">≈ ' + n + " " + (r.p.unit === "м²" ? "м²" : DC.plural(n, "рулон", "рулона", "рулонов")) + "<small>" + (r.p.price ? DC.rub(r.p.price) + " " + DC.unitLabel(r.p) : "цена по запросу") + "</small></div>" +
+        '<div class="sel__sum">' + (r.p.price ? DC.rub(n * r.p.price) : "—") + "</div>" +
         '<button type="button" class="btn btn--ghost btn--sm" data-add="' + id + '" data-qty="' + n + '">В корзину</button></div>';
     });
     html += '</div><div class="sel__foot"><p class="sel__total">Ориентировочно: <b>' + DC.rub(total) + '</b></p><div class="hero__cta">' +
       '<button type="button" class="btn btn--primary" data-sel-send>Отправить подборку менеджеру<svg class="ic"><use href="#i-arrow"/></svg></button>' +
       '<button type="button" class="btn btn--ghost" data-sel-all>Добавить всё в корзину</button></div></div>';
     box.innerHTML = html;
-    $$("[data-sel-sw]", box).forEach(function (el) { DC.patBg(el, D.byId[el.getAttribute("data-sel-sw")], 30); });
+    $$("[data-sel-sw]", box).forEach(function (el) { DC.patBg(el, WP(el.getAttribute("data-sel-sw")), 30); });
     $("[data-sel-all]", box).addEventListener("click", function () {
-      ids.forEach(function (id) { DC.cart.add(id, rows[id].n); });
+      ids.forEach(function (id) { D.remember(rows[id].p); if (rows[id].p.price) DC.cart.add(id, rows[id].n); });
       DC.toast({ title: "Подборка в корзине", text: ids.length + " " + DC.plural(ids.length, "позиция", "позиции", "позиций"), link: { href: "/cart", text: "Оформить" } });
     });
     $("[data-sel-send]", box).addEventListener("click", function () {
       DC.openLead("studio", { details: function () {
-        return "Примерочная:\n" + ids.map(function (id) { var r = rows[id]; return "• " + r.p.title + " — " + r.places.join("; ") + " — ≈" + r.n + (r.p.unit === "м²" ? " м²" : " рул.") + ", " + DC.rub(r.n * r.p.price); }).join("\n") +
+        return "Примерочная:\n" + ids.map(function (id) { var r = rows[id]; return "• " + r.p.title + " — " + r.places.join("; ") + " — ≈" + r.n + (r.p.unit === "м²" ? " м²" : " рул.") + (r.p.price ? ", " + DC.rub(r.n * r.p.price) : ""); }).join("\n") +
           "\nИтого ≈ " + DC.rub(total) + "\nСсылка на примерку: " + location.href;
       } });
     });
@@ -322,6 +360,7 @@
     if (i < 3) {
       if (ui.active !== "walls") ui.active = "walls";
       if (ui.wallSel !== "all") ui.wallSel = i;
+      if (ui.mode === "wp" && !ui.wp) return;
       var spec = ui.mode === "wp" ? { wp: ui.wp } : { paint: ui.paint };
       set(targets(), spec);
       studio.pulse(targets());
@@ -402,17 +441,24 @@
   document.addEventListener("keydown", function (e) {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z" && !e.target.closest("input, textarea")) { e.preventDefault(); undo(); }
   });
-  $("[data-wp-search]").addEventListener("input", function () { ui.query = this.value; renderWpGrid(); });
+  $("[data-wp-search]").addEventListener("input", function () { ui.query = this.value; ui.limit = 48; renderWpGrid(); });
   DC.onChange(function () { renderNow(); });
 
   /* ---------- старт ---------- */
-  (function init() {
-    var w = (q.get("w") || "").split(",");
-    if (w.length === 3 && w.some(function (x) { return D.byId[x]; })) {
-      w.forEach(function (id, i) { ui.s[ui.room][i] = D.byId[id] ? { wp: id } : null; });
-      var first = w.filter(function (x) { return D.byId[x]; })[0]; ui.wp = first;
+  function init() {
+    var asked = q.get("p"), w = (q.get("w") || "").split(",");
+    /* пришли из карточки товара: эти обои сразу на всех стенах */
+    if (asked && !WP(asked) && D.byId[asked] && hasPhoto(D.byId[asked])) addWp(D.byId[asked]);
+    /* по умолчанию — популярные обои с рисунком и цветом: на стене сразу видно, как работает примерка */
+    var def = CAT.filter(function (p) { return p.plain === 0 && p.color && p.color !== "belyj"; })[0] || CAT[0];
+    ui.wp = WP(asked) ? asked : (def ? def.id : null);
+    if (asked && !WP(asked)) DC.toast({ title: "Для этих обоев пока нет фото", text: "Показали другие — выберите любые из списка", icon: "i-info" });
+    if (WP(ui.wp)) D.remember(WP(ui.wp));
+    if (w.length === 3 && w.some(function (x) { return WP(x); })) {
+      w.forEach(function (id, i) { ui.s[ui.room][i] = WP(id) ? { wp: id } : null; if (WP(id)) D.remember(WP(id)); });
+      var first = w.filter(function (x) { return WP(x); })[0]; ui.wp = first;
     } else {
-      ui.s[ui.room][0] = ui.s[ui.room][1] = ui.s[ui.room][2] = { wp: ui.wp };
+      ui.s[ui.room][0] = ui.s[ui.room][1] = ui.s[ui.room][2] = ui.wp ? { wp: ui.wp } : null;
     }
     $("[data-scene-img]").src = "/assets/img/rooms/room-" + ui.room + ".jpg";
     renderWpChips(); setMode("wp"); sync();
@@ -424,9 +470,10 @@
         var s = ui.s[ui.room], wpIdx = [0, 1, 2].filter(function (i) { return s[i] && s[i].wp; });
         var groups = {};
         wpIdx.forEach(function (i) { (groups[s[i].wp] = groups[s[i].wp] || []).push(i); });
-        Object.keys(groups).forEach(function (id) { studio.setWall(groups[id], D.byId[id]); });
+        Object.keys(groups).forEach(function (id) { studio.setWall(groups[id], WP(id)); });
       });
     };
     if (document.readyState === "complete") start(); else window.addEventListener("load", start);
-  })();
+  }
+  loadCat().then(init);
 })();

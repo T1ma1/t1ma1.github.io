@@ -189,4 +189,20 @@
       } });
     });
   })();
+
+  /* примерочная на главной: образцы популярных обоев — нажатие открывает примерку с ними */
+  (function () {
+    var box = document.querySelector("[data-tryon-sw]"); if (!box || !window.DC_DATA) return;
+    var D = window.DC_DATA, seen = {};
+    var all = D.products.filter(function (p) { return /^\/assets\/img\/p\//.test(p.img || "") && p.type !== "mural"; });
+    var pick = all.filter(function (p) { if (seen[p.coll + p.brand]) return false; seen[p.coll + p.brand] = 1; return true; });
+    all.forEach(function (p) { if (pick.length < 6 && pick.indexOf(p) < 0) pick.push(p); });
+    pick.slice(0, 6).forEach(function (p) {
+      var a = document.createElement("a");
+      a.className = "tryon__chip"; a.href = "/primerka?p=" + encodeURIComponent(p.id);
+      a.setAttribute("aria-label", "Примерить: " + p.title); a.title = p.brand + " " + p.sku;
+      a.style.backgroundImage = "url('" + D.img(p) + "')";
+      box.appendChild(a);
+    });
+  })();
 })();

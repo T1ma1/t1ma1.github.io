@@ -255,3 +255,30 @@ img.mega__promo-art { width: 100%; height: 100%; object-fit: cover; }
   /* стрелки ленты товаров — листают пальцем */
   #popular .rail__btn { display: none; }
 }
+
+/* компаньоны под характеристиками: тот же цвет без рисунка / с рисунком */
+.pcomp { padding: clamp(28px, 4vw, 48px) 0 clamp(36px, 5vw, 64px); }
+.pcomp__head { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.pcomp__head .h3 { margin: 0 0 6px; }
+.pcomp__head p { margin: 0; font-size: 15px; }
+/* кнопка «Примерить на стене» в карточке товара */
+.ptry { width: 100%; margin-top: 10px; }
+/* примерочная на главной */
+.tryon { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); border-radius: var(--r-lg, 20px); overflow: hidden; }
+.tryon__text { padding: clamp(28px, 4.5vw, 64px); display: flex; flex-direction: column; justify-content: center; gap: 18px; }
+.tryon__text .h2 { margin: 0; }
+.tryon__lead { margin: 0; color: var(--on-dark-2); font-size: 16px; line-height: 1.6; max-width: 46ch; }
+.tryon__sw { display: flex; flex-wrap: wrap; gap: 10px; }
+.tryon__chip { width: 54px; height: 54px; border-radius: 50%; background: #333 center / cover; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .18); transition: transform .3s var(--ease), box-shadow .3s; }
+.tryon__chip:hover { transform: translateY(-3px); box-shadow: 0 0 0 2px var(--night), 0 0 0 4px var(--brass-2); }
+.tryon__img { display: block; min-height: 340px; overflow: hidden; }
+.tryon__img img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s var(--ease); }
+.tryon__img:hover img { transform: scale(1.04); }
+.nav__link--try { color: var(--green); }
+.studio__chip-sep { flex: none; width: 1px; height: 22px; align-self: center; background: var(--night-line); }
+.studio__more { grid-column: 1 / -1; height: 44px; border-radius: 999px; border: 1px solid var(--night-line); color: var(--on-dark); font-size: 14px; font-weight: 500; transition: .2s; }
+.studio__more:hover { border-color: rgba(255, 255, 255, .4); }
+@media (max-width: 900px) {
+  .tryon { grid-template-columns: 1fr; }
+  .tryon__img { order: -1; min-height: 0; aspect-ratio: 16 / 10; }
+}

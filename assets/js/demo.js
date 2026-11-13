@@ -225,6 +225,25 @@
     var gallery = [D.img(P, true)].concat((P.imgs || []).map(function (u) { return D.img({ img: u }, true); })).filter(Boolean);
     var roll = P.roll, size = roll ? String(roll[0]).replace(".", ",") + " × " + String(roll[1]).replace(".", ",") + " м" : "";
     var tones = CAT.filter(function (q) { return q.name === P.name; }).slice(0, 12);
+    /* компаньоны: к рисунку — однотон того же цвета, к однотону — рисунок (как dc_companions в PHP) */
+    var PLAIN = ["odnotonnye", "shtukaturka-imitatsiya-2", "tkan-imitatsiya-2", "tkan-imitatsiya-3", "beton", "effekt-okrashennoj-steny", "prirodnye-materialy", "kamen-imitatsiya"];
+    var isPlain = function (x) { var r = (x.attrs && x.attrs.risunok) || []; return r.length ? r.every(function (v) { return PLAIN.indexOf(v) >= 0; }) : null; };
+    var hasPhoto = function (x) { return /^\/assets\/img\/p\//.test(x.img || ""); };
+    var comp = [], pPlain = isPlain(P), tsv = (P.attrs && P.attrs.tsvet) || [];
+    if (pPlain !== null && tsv.length) {
+      var mainC = tsv[0], ton = P.attrs.ton || [];
+      comp = CAT.filter(function (q) { return q !== P && hasPhoto(q) && isPlain(q) === !pPlain && ((q.attrs.tsvet || []).indexOf(mainC) >= 0); })
+        .map(function (q) {
+          var s = 0, qt = q.attrs.tsvet || [];
+          if (q.collSlug && q.collSlug === P.collSlug && q.brandSlug === P.brandSlug) s += 100; else if (q.brandSlug === P.brandSlug) s += 40;
+          if (ton.some(function (t) { return (q.attrs.ton || []).indexOf(t) >= 0; })) s += 10;
+          if (qt[0] === mainC) s += 6; if (q.type === P.type) s += 4;
+          return [s * 1e6 + Math.min(999999, q.pop || 0), q];
+        }).sort(function (a, b) { return b[0] - a[0]; }).slice(0, 10).map(function (x) { return x[1]; });
+    }
+    var cVal = FAC.byKey.tsvet && FAC.byKey.tsvet.byV[tsv[0]], cName = cVal ? cVal.label.toLowerCase() : "";
+    var compHtml = comp.length ? '<section class="pcomp"><div class="container"><div class="pcomp__head"><div><h2 class="h3">' + (pPlain ? "С рисунком в этом цвете" : "Компаньоны без рисунка") + '</h2><p class="muted">' + (pPlain ? "Обои с рисунком" : "Однотонные обои и фактуры") + (cName ? " — " + esc(cName) + " цвет" : "") + ', чтобы сочетать на соседних стенах</p></div></div><div class="rail" data-rail><div class="rail__track" data-comp></div></div></div></section>' : "";
+    var tryHtml = hasPhoto(P) && P.type !== "mural" ? '<a class="btn btn--ghost ptry" href="/primerka?p=' + encodeURIComponent(P.id) + '"><svg class="ic"><use href="#i-room"/></svg>Примерить на стене</a>' : "";
     var related = CAT.filter(function (q) { return q !== P && q.collSlug && q.collSlug === P.collSlug && q.brandSlug === P.brandSlug; }).slice(0, 10);
     var vid = (P.attrs["vid-oboev"] || [])[0], vidVal = vid && FAC.byKey["vid-oboev"].byV[vid];
     var cr = [["Главная", "/"], ["Каталог", "/catalog"], ["Обои", "/product-category/oboi"]]; if (vidVal) { var VC = { flizelinovye: "/product-category/oboi/flizelinovye", vinilovye: "/product-category/oboi/vinilovye", "vinilovye-na-flizeline": "/product-category/oboi/vinilovye", "pod-pokrasku": "/product-category/oboi/pod-pokrasku", "fotooboi-i-panno": "/product-category/freski" }; cr.push([vidVal.label, VC[vid] || tagUrl("vid-oboev", vid)]); } cr.push([P.brand + " " + P.sku, null]);
@@ -258,13 +277,15 @@
       (hasPrice ? '<div class="pinfo__buy"><div class="stepper"><button type="button" data-q="-1" aria-label="Меньше"><svg class="ic"><use href="#i-minus"/></svg></button><input type="number" min="1" max="999" value="1" data-qty aria-label="Количество"><button type="button" data-q="1" aria-label="Больше"><svg class="ic"><use href="#i-plus"/></svg></button></div>' +
         '<button type="button" class="btn btn--primary" data-buy><svg class="ic"><use href="#i-bag"/></svg>В корзину · <span data-buy-sum>' + rub(P.price) + '</span></button><button type="button" class="btn btn--ghost btn--fav" data-fav="' + esc(P.id) + '" aria-label="В избранное"><svg class="ic"><use href="#i-heart"/></svg></button></div>'
         : '<div class="pinfo__buy"><button type="button" class="btn btn--primary" data-lead="oneclick" data-product="' + esc(P.id) + '"><svg class="ic"><use href="#i-phone"/></svg>Узнать цену и наличие</button><button type="button" class="btn btn--ghost btn--fav" data-fav="' + esc(P.id) + '" aria-label="В избранное"><svg class="ic"><use href="#i-heart"/></svg></button></div>') +
-      '<p class="pinfo__more"><button type="button" class="u-link" data-lead="oneclick" data-product="' + esc(P.id) + '">Купить в один клик</button><span>·</span><span>Доставка по России и самовывоз из 4 шоурумов</span></p></div></div>' +
+      tryHtml + '<p class="pinfo__more"><button type="button" class="u-link" data-lead="oneclick" data-product="' + esc(P.id) + '">Купить в один клик</button><span>·</span><span>Доставка по России и самовывоз из 4 шоурумов</span></p></div></div>' +
       '<div class="ptabs"><div class="ptabs__nav" role="tablist"><button type="button" class="is-on" data-tab="specs" role="tab">Характеристики</button><button type="button" data-tab="ship" role="tab">Доставка</button></div>' +
       '<div class="ptabs__panel" data-tabpanel="specs"><table class="spec-table"><tbody>' + rows.map(function (r) { return "<tr><th>" + r[0] + "</th><td>" + r[1] + "</td></tr>"; }).join("") + "</tbody></table></div>" +
-      '<div class="ptabs__panel" data-tabpanel="ship" hidden><div class="prose"><p>Доставляем по всей России или забирайте в шоуруме: Москва, Санкт-Петербург, Брянск, Калуга. Срок и стоимость назовёт менеджер.</p><p><a href="/delivery">Доставка и оплата</a> · <a href="/return">Обмен и возврат</a></p></div></div></div></div>' +
+      '<div class="ptabs__panel" data-tabpanel="ship" hidden><div class="prose"><p>Доставляем по всей России или забирайте в шоуруме: Москва, Санкт-Петербург, Брянск, Калуга. Срок и стоимость назовёт менеджер.</p><p><a href="/delivery">Доставка и оплата</a> · <a href="/return">Обмен и возврат</a></p></div></div></div></div>' + compHtml +
       (related.length ? '<section class="section section--paper2"><div class="container"><div class="section-head"><div class="section-head__text"><h2 class="h2">Похожие товары</h2></div><div class="rail__nav" style="display:flex;gap:8px"><button type="button" class="rail__btn" data-rail-prev aria-label="Назад"><svg class="ic"><use href="#i-arrow-l"/></svg></button><button type="button" class="rail__btn" data-rail-next aria-label="Вперёд"><svg class="ic"><use href="#i-arrow"/></svg></button></div></div><div class="rail" data-rail><div class="rail__track" data-related></div></div></div></section>' : "");
+    var compBox = $("[data-comp]", root);
+    comp.forEach(function (q) { D.byId[q.id] = D.byId[q.id] || q; if (compBox) compBox.appendChild(DC.card(q)); });
     var relBox = $("[data-related]", root);
-    related.forEach(function (q) { D.byId[q.id] = D.byId[q.id] || q; relBox.appendChild(DC.card(q)); });
+    related.forEach(function (q) { D.byId[q.id] = D.byId[q.id] || q; if (relBox) relBox.appendChild(DC.card(q)); });
     document.body.classList.add("page-product");
     afterRender(["/assets/js/product.js"]);
   }

@@ -313,8 +313,10 @@
     function loadWp(p) {
       if (wpTex[p.id]) return wpTex[p.id].p;
       var rec = wpTex[p.id] = {};
-      rec.p = PT.canvas(p.pat, 1024).then(function (cv) {
-        if (dead) return rec;
+      rec.p = tileOf(p).then(function (tile) {
+        if (dead || !tile) return rec;
+        var cv = tile.cv;
+        rec.w = tile.w; rec.h = tile.h;
         rec.t = makeTile(cv);
         var c = document.createElement("canvas"); c.width = c.height = 8;
         var x = c.getContext("2d"); x.drawImage(cv, 0, 0, 8, 8);
@@ -324,6 +326,29 @@
         return rec;
       });
       return rec.p;
+    }
+
+    /* плитка обоев: сгенерированный рисунок (p.pat) или фото товара.
+       Фото зеркалим 2×2 — на стыках повторов не остаётся шва; ширину кадра считаем равной ширине рулона. */
+    function tileOf(p) {
+      if (p.pat) return PT.canvas(p.pat, 1024).then(function (cv) { return { cv: cv, w: p.pat.w / 1000, h: p.pat.h / 1000 }; });
+      return new Promise(function (res) {
+        var src = (window.DC_DATA && DC_DATA.img ? DC_DATA.img(p, true) : "") || p.img || p.thumb;
+        if (!src) return res(null);
+        var im = new Image();
+        im.onload = function () {
+          var S = 1024, h = S / 2, cv = document.createElement("canvas"); cv.width = cv.height = S;
+          var x = cv.getContext("2d");
+          [[1, 1, 0, 0], [-1, 1, S, 0], [1, -1, 0, S], [-1, -1, S, S]].forEach(function (q) {
+            x.setTransform(q[0], 0, 0, q[1], q[2], q[3]); x.drawImage(im, 0, 0, h, h);
+          });
+          x.setTransform(1, 0, 0, 1, 0, 0);
+          var w = Math.min(p.roll ? p.roll[0] : 1.06, 1.06);
+          res({ cv: cv, w: w * 2, h: w * 2 * im.naturalHeight / im.naturalWidth });
+        };
+        im.onerror = function () { res(null); };
+        im.src = src;
+      });
     }
 
     function makeHitMap(m1, m3, m2) {
@@ -395,9 +420,10 @@
           if (hasPrev) { gl.activeTexture(gl.TEXTURE10 + i); gl.bindTexture(gl.TEXTURE_2D, tb || dummy()); }
           if (s.cur.k === 2 && !ta) curK[i] = 0;
           if (s.prev.k === 2 && (!tb || !hasPrev)) prevK[i] = s.prev.k === 2 && !hasPrev ? 0 : prevK[i];
-          tileA.push(a ? a.pat.w / 1000 : 1, a ? a.pat.h / 1000 : 1); tileB.push(b ? b.pat.w / 1000 : 1, b ? b.pat.h / 1000 : 1);
-          rollA.push(a ? Math.min(a.roll[0], 1.06) : 0.53, a && a.type !== "mural" ? 0.075 : 0.035);
-          rollB.push(b ? Math.min(b.roll[0], 1.06) : 0.53, b && b.type !== "mural" ? 0.075 : 0.035);
+          var ra = a && wpTex[a.id], rb = b && wpTex[b.id];
+          tileA.push(ra && ra.w || 1, ra && ra.h || 1); tileB.push(rb && rb.w || 1, rb && rb.h || 1);
+          rollA.push(a ? Math.min(a.roll ? a.roll[0] : 1.06, 1.06) : 0.53, a && a.type !== "mural" ? 0.075 : 0.035);
+          rollB.push(b ? Math.min(b.roll ? b.roll[0] : 1.06, 1.06) : 0.53, b && b.type !== "mural" ? 0.075 : 0.035);
         }
       }
       var refs = [meta.wall, meta.wall, meta.wall, meta.ceil], anchors = [meta.anchor, meta.anchor, meta.anchor, meta.anchorCeil];
