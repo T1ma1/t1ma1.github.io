@@ -354,10 +354,55 @@
   </div>
 </section>
 
+<section class="section section--tight" id="calc" data-chapter="Калькулятор">
+  <div class="container">
+    <div class="section-head">
+      <div class="section-head__text reveal">
+        <p class="eyebrow">05 — Калькулятор</p>
+        <h2 class="h2">Сколько нужно <em>рулонов?</em></h2>
+      </div>
+      <p class="section-head__aside reveal">Считаем с запасом на подгонку рисунка (раппорт) и вычетом окон и дверей. Менеджер перепроверит перед заказом.</p>
+    </div>
+    <div class="calc reveal" data-calc>
+      <form class="calc__form" onsubmit="return false">
+        <div class="field"><input class="field__input" id="cLen" type="number" inputmode="decimal" min="1" max="30" step="0.1" value="5" placeholder=" " data-c="len"><label class="field__label" for="cLen">Длина комнаты</label><span class="field__unit">м</span></div>
+        <div class="field"><input class="field__input" id="cWid" type="number" inputmode="decimal" min="1" max="30" step="0.1" value="4" placeholder=" " data-c="wid"><label class="field__label" for="cWid">Ширина комнаты</label><span class="field__unit">м</span></div>
+        <div class="field"><input class="field__input" id="cH" type="number" inputmode="decimal" min="2" max="5" step="0.05" value="2.7" placeholder=" " data-c="h"><label class="field__label" for="cH">Высота стен</label><span class="field__unit">м</span></div>
+        <div class="field field--select"><select class="field__select" id="cRoll" data-c="roll"><option value="0.53|10.05">0,53 × 10,05 м</option><option value="1.06|10.05" selected>1,06 × 10,05 м</option><option value="1.06|25">1,06 × 25 м (под покраску)</option></select><label class="field__label" for="cRoll">Размер рулона</label></div>
+        <div class="field"><input class="field__input" id="cRap" type="number" inputmode="numeric" min="0" max="120" step="1" value="53" placeholder=" " data-c="rap"><label class="field__label" for="cRap">Раппорт (повтор рисунка)</label><span class="field__unit">см</span></div>
+        <div class="field field--select"><select class="field__select" id="cMatch" data-c="match"><option value="straight">Прямая стыковка</option><option value="offset">Со смещением</option><option value="free">Свободная (без подгонки)</option></select><label class="field__label" for="cMatch">Стыковка</label></div>
+        <div class="field"><input class="field__input" id="cWin" type="number" inputmode="numeric" min="0" max="10" value="1" placeholder=" " data-c="win"><label class="field__label" for="cWin">Окон</label><span class="field__unit">шт</span></div>
+        <div class="field"><input class="field__input" id="cDoor" type="number" inputmode="numeric" min="0" max="10" value="1" placeholder=" " data-c="door"><label class="field__label" for="cDoor">Дверей</label><span class="field__unit">шт</span></div>
+        <label class="check full"><input type="checkbox" checked data-c="reserve"><span>Добавить 1 рулон в запас — на случай ошибки при поклейке и будущего ремонта (партии отличаются по тону)</span></label>
+      </form>
+      <div class="calc__out">
+        <p class="eyebrow eyebrow--light">Понадобится</p>
+        <div class="calc__big"><b data-c-out="rolls">8</b><span data-c-out="word">рулонов</span></div>
+        <div class="calc__rows">
+          <div><span>Полос обоев</span><b data-c-out="strips">—</b></div>
+          <div><span>Длина полосы с подгонкой</span><b data-c-out="cut">—</b></div>
+          <div><span>Полос из рулона</span><b data-c-out="per">—</b></div>
+          <div><span>Площадь стен</span><b data-c-out="area">—</b></div>
+        </div>
+        <p class="calc__hint">Расчёт ориентировочный. Для фресок и обоев с крупным раппортом лучше уточнить у менеджера.</p>
+        <div class="hero__cta">
+          <button type="button" class="btn btn--light" data-calc-send>Проверить расчёт с менеджером<svg class="ic"><use href="#i-arrow"/></svg></button>
+          <a class="btn btn--ghost-light" href="/product-category/oboi">Выбрать обои</a>
+        </div>
+      </div>
+    </div>
+    <a class="studio-strip reveal" href="/primerka">
+      <span class="studio-strip__img"><img src="/assets/img/rooms/room-living-sm.jpg" alt="" loading="lazy"></span>
+      <span class="studio-strip__t"><b>Примерочная обоев</b><span>Посмотрите выбранный рисунок на стенах гостиной, спальни, кухни или детской</span></span>
+      <span class="studio-strip__go"><svg class="ic"><use href="#i-arrow"/></svg></span>
+    </a>
+  </div>
+</section>
+
 <section class="section" id="faq" data-chapter="Вопросы">
   <div class="container faq">
     <div class="section-head__text reveal">
-      <p class="eyebrow">05 — Вопросы</p>
+      <p class="eyebrow">06 — Вопросы</p>
       <h2 class="h2">Частые <em>вопросы</em></h2>
       <p class="muted">Не нашли ответ? Напишите в мессенджер — ответим в течение 15 минут.</p>
       <div class="hero__cta"><a class="btn btn--ghost" href="/faq">Все вопросы</a><button type="button" class="btn btn--primary" data-lead="callback">Задать свой вопрос</button></div>
