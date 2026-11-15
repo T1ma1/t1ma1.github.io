@@ -50,7 +50,7 @@
     light: LIGHT[q.get("light")] ? q.get("light") : "day",
     mode: "wp", active: "walls", wallSel: "all",
     wp: null,
-    paint: "#EFE7D8", color: "all", plain: "all", limit: 48, query: "", fam: "white",
+    paint: "#EFE7D8", color: "all", plain: "all", limit: (window.innerWidth < 700 ? 24 : 48), query: "", fam: "white",
     s: {}   // s[комната][0..6] = { wp: id } | { paint: hex } | null
   };
   Object.keys(ROOMS).forEach(function (k) { ui.s[k] = [null, null, null, null, null, null, null]; });
@@ -58,7 +58,9 @@
 
   /* ---------- движок ---------- */
   var sceneEl = $("[data-scene]"), stage = $("[data-stage]"), loading = $("[data-loading]");
-  var studio = DC_STUDIO.create(sceneEl, { room: ui.room, onFail: fallback });
+  var studio = DC_STUDIO.create(sceneEl, { room: ui.room, onFail: fallback, preloadAll: false });   /* остальные комнаты грузим только по клику — иначе на телефоне тянется 2,5 МБ лишнего */
+  /* образцы в списке — только те, что видны на экране */
+  var swIO = "IntersectionObserver" in window ? new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { swIO.unobserve(e.target); if (e.target._sw) { e.target._sw(); e.target._sw = null; } } }); }, { rootMargin: "300px" }) : null;
   function fallback() { studio = null; loading.hidden = true; $("[data-fallback]").hidden = false; root.classList.add("studio--lite"); }
   if (!studio) fallback();
 
@@ -202,7 +204,7 @@
       b.type = "button"; b.className = "studio__chip" + (ui[key] === val ? " is-on" : "");
       b.setAttribute("aria-pressed", ui[key] === val);
       b.textContent = label;
-      b.addEventListener("click", function () { ui[key] = ui[key] === val ? "all" : val; ui.limit = 48; renderWpChips(); renderWpGrid(); });
+      b.addEventListener("click", function () { ui[key] = ui[key] === val ? "all" : val; ui.limit = (window.innerWidth < 700 ? 24 : 48); renderWpChips(); renderWpGrid(); });
       box.appendChild(b);
     };
     chip("plain", "plain", "Без рисунка"); chip("plain", "pattern", "С рисунком");
@@ -221,7 +223,9 @@
       b.type = "button"; b.className = "studio__wp" + (cur && cur.wp === p.id ? " is-on" : "");
       b.setAttribute("aria-pressed", !!(cur && cur.wp === p.id));
       b.innerHTML = '<span class="studio__wp-sw"></span><span class="studio__wp-t"><b>' + esc(p.brand) + "</b><span>" + esc(p.sku) + "</span><em>" + priceOf(p) + "</em></span>";
-      DC.patBg($(".studio__wp-sw", b), p, p.type === "mural" ? 300 : 40);
+      var sw = $(".studio__wp-sw", b);
+      sw._sw = function () { DC.patBg(sw, p, p.type === "mural" ? 300 : 40); };
+      if (swIO) swIO.observe(sw); else sw._sw();
       b.addEventListener("click", function () {
         ui.wp = p.id; D.remember(p);
         if (ui.active !== "walls") ui.active = "walls";
@@ -441,7 +445,7 @@
   document.addEventListener("keydown", function (e) {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z" && !e.target.closest("input, textarea")) { e.preventDefault(); undo(); }
   });
-  $("[data-wp-search]").addEventListener("input", function () { ui.query = this.value; ui.limit = 48; renderWpGrid(); });
+  $("[data-wp-search]").addEventListener("input", function () { ui.query = this.value; ui.limit = (window.innerWidth < 700 ? 24 : 48); renderWpGrid(); });
   DC.onChange(function () { renderNow(); });
 
   /* ---------- старт ---------- */

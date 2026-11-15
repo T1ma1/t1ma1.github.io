@@ -5,22 +5,34 @@
 (function () {
   "use strict";
   var DC = window.DC, D = window.DC_DATA, $ = DC.$, $$ = DC.$$, esc = DC.esc, rub = DC.rub, plural = DC.plural;
-  var root = document.querySelector("[data-demo]");
-  var CAT = null, FAC = null, BRANDS = null, BYID = null;
-
+  var root = document.querySelector("[data-demo]"), root_ = root;
+  var CAT = null, FAC = null, BRANDS = null, GOODS = null;
+  var facP = null, catP = null, goodsP = null;
+  function getJSON(u) { return fetch(u).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }); }
+  /* справочник фильтров — маленький, нужен всем страницам каталога */
+  function loadFac() {
+    return facP || (facP = getJSON("/demo/facets.json").then(function (f) {
+      FAC = f; FAC.byKey = {}; FAC.list.forEach(function (x) { FAC.byKey[x.key] = x; x.byV = {}; x.values.forEach(function (v) { x.byV[v.v] = v; }); });
+    }));
+  }
+  function loadGoods() { return goodsP || (goodsP = getJSON("/demo/goods.json").then(function (g) { GOODS = g; })); }
+  /* весь каталог обоев (списки, фильтры, поиск) — в компактном виде, раскрываем в обычные объекты */
   function load() {
-    if (CAT) return Promise.resolve();
-    return Promise.all([fetch("/demo/catalog.json").then(function (r) { return r.json(); }), fetch("/demo/facets.json").then(function (r) { return r.json(); })])
-      .then(function (res) {
-        CAT = res[0]; FAC = res[1]; BYID = {}; BRANDS = {};
-        CAT.forEach(function (p) {
-          BYID[p.id] = p;
-          var b = BRANDS[p.brandSlug] || (BRANDS[p.brandSlug] = { slug: p.brandSlug, name: p.brand, n: 0, colls: {} });
-          b.n++;
-          if (p.collSlug) { var c = b.colls[p.collSlug] || (b.colls[p.collSlug] = { slug: p.collSlug, name: p.coll, n: 0 }); c.n++; }
-        });
-        FAC.byKey = {}; FAC.list.forEach(function (f) { FAC.byKey[f.key] = f; f.byV = {}; f.values.forEach(function (v) { f.byV[v.v] = v; }); });
+    return catP || (catP = Promise.all([getJSON("/demo/catalog.json"), loadFac()]).then(function (res) {
+      var c = res[0]; BRANDS = {};
+      CAT = c.rows.map(function (r) {
+        var b = c.brands[r[3]], cl = r[4] >= 0 ? c.colls[r[4]] : null, attrs = {}, a = r[17];
+        for (var i = 0; i < a.length; i += 2) { var k = c.keys[a[i]], vs = c.vals[k]; attrs[k] = a[i + 1].map(function (x) { return vs[x]; }); }
+        var img = r[14] === 1 ? "/assets/img/p/" + r[0] + ".jpg" : (r[14] || "");
+        var thumb = !img ? "" : r[15] === 1 ? img : r[15] === 0 ? img.replace(/(\.\w+)$/, "-300x300$1") : r[15];
+        var p = { id: r[0], sku: r[1], title: r[2], brand: b[0], brandSlug: b[1], coll: cl ? cl[0] : "", collSlug: cl ? cl[1] : "", type: c.types[r[5]], typeLabel: c.labels[r[6]],
+          price: r[7], old: r[8], unit: r[9] ? "м²" : "рулон", badges: r[10] ? r[10].split(",") : [], pop: r[11], roll: r[12] || null, rapport: r[13], img: img, thumb: thumb, photo: r[16], attrs: attrs };
+        var B = BRANDS[p.brandSlug] || (BRANDS[p.brandSlug] = { slug: p.brandSlug, name: p.brand, n: 0, colls: {} });
+        B.n++;
+        if (p.collSlug) { var C = B.colls[p.collSlug] || (B.colls[p.collSlug] = { slug: p.collSlug, name: p.coll, n: 0 }); C.n++; }
+        return p;
       });
+    }));
   }
 
   /* ---------- поиск в шапке: вместо /api/search.php ---------- */
@@ -29,7 +41,7 @@
     var words = norm(q).split(" ").filter(Boolean).slice(0, 6);
     if (!words.length) return [];
     return CAT.filter(function (p) {
-      var t = p._s || (p._s = (function () { var x = norm(p.title + " " + p.brand + " " + p.coll + " " + p.sku + " " + (p.typeLabel || "") + " " + (p.colorLabel || "")); return x + " " + x.replace(/[-\s._]/g, ""); })());
+      var t = p._s || (p._s = (function () { var cv = FAC.byKey.tsvet && FAC.byKey.tsvet.byV[(p.attrs.tsvet || [])[0]]; var x = norm(p.title + " " + p.brand + " " + p.coll + " " + p.sku + " " + (p.typeLabel || "") + " " + (cv ? cv.label : "")); return x + " " + x.replace(/[-\s._]/g, ""); })());
       return words.every(function (w) { return t.indexOf(w) >= 0 || (w.length > 4 && t.indexOf(w.slice(0, -2)) >= 0); });
     });
   }
@@ -62,14 +74,25 @@
     "/product-category/oboi/tovary-po-skidke": { h1: "Обои по скидке", label: "Товары по скидке", base: {}, sale: true },
     "/product-category/freski": { h1: "Фрески", label: "Фрески", base: { "vid-oboev": ["fotooboi-i-panno"] } }
   };
+  /* краска и лепнина — как lib/goods-page.php */
+  var GCATS = {
+    "/product-category/kraska": { kind: "kraska", sub: "", h1: "Краска", label: "Вся краска" },
+    "/product-category/kraska/interernaya-kraska": { kind: "kraska", sub: "interernaya-kraska", h1: "Интерьерная краска", label: "Интерьерная краска" },
+    "/product-category/kraska/gruntovka": { kind: "kraska", sub: "gruntovka", h1: "Грунтовка", label: "Грунтовка" },
+    "/product-category/lepnina": { kind: "lepnina", sub: "", h1: "Лепнина", label: "Лепнина" }
+  };
   var m;
-  load().then(function () {
-    if (CATS[path]) return listing({ cat: path });
-    if ((m = path.match(/^\/oboi\/([a-z0-9-]+)$/))) return listing({ tag: m[1] });
-    if ((m = path.match(/^\/brand\/([a-z0-9-]+)(?:\/([a-z0-9-]+))?$/))) return listing({ brand: m[1], coll: m[2] || "" });
-    if ((m = path.match(/^\/product\/([A-Za-z0-9_-]+)$/))) return product(m[1]);
-    notFound();
-  }).catch(function () { notFound(); });
+  (function () {
+    /* карточка товара: один файл на товар — весь каталог не нужен */
+    if ((m = path.match(/^\/product\/([A-Za-z0-9_-]+)$/))) return Promise.all([getJSON("/demo/p/" + m[1] + ".json"), loadFac()]).then(function (res) { product(res[0]); });
+    if (GCATS[path]) return loadGoods().then(function () { goodsListing(path); });
+    return load().then(function () {
+      if (CATS[path]) return listing({ cat: path });
+      if ((m = path.match(/^\/oboi\/([a-z0-9-]+)$/))) return listing({ tag: m[1] });
+      if ((m = path.match(/^\/brand\/([a-z0-9-]+)(?:\/([a-z0-9-]+))?$/))) return listing({ brand: m[1], coll: m[2] || "" });
+      notFound();
+    });
+  })().catch(function () { notFound(); });
 
   function notFound() {
     var t = document.querySelector("[data-demo-404]");
@@ -218,44 +241,36 @@
   }
 
   /* ---------- карточка товара ---------- */
-  function product(slug) {
-    var P = BYID[slug]; if (!P) return notFound();
+  function product(data) {
+    var P = data.p, G = !!P.kind;
     D.byId[P.id] = D.byId[P.id] || P;
-    var title = P.title, B = BRANDS[P.brandSlug];
+    var title = P.title;
     var gallery = [D.img(P, true)].concat((P.imgs || []).map(function (u) { return D.img({ img: u }, true); })).filter(Boolean);
     var roll = P.roll, size = roll ? String(roll[0]).replace(".", ",") + " × " + String(roll[1]).replace(".", ",") + " м" : "";
-    var tones = CAT.filter(function (q) { return q.name === P.name; }).slice(0, 12);
-    /* компаньоны: к рисунку — однотон того же цвета, к однотону — рисунок (как dc_companions в PHP) */
-    var PLAIN = ["odnotonnye", "shtukaturka-imitatsiya-2", "tkan-imitatsiya-2", "tkan-imitatsiya-3", "beton", "effekt-okrashennoj-steny", "prirodnye-materialy", "kamen-imitatsiya"];
-    var isPlain = function (x) { var r = (x.attrs && x.attrs.risunok) || []; return r.length ? r.every(function (v) { return PLAIN.indexOf(v) >= 0; }) : null; };
-    var hasPhoto = function (x) { return /^\/assets\/img\/p\//.test(x.img || ""); };
-    var comp = [], pPlain = isPlain(P), tsv = (P.attrs && P.attrs.tsvet) || [];
-    if (pPlain !== null && tsv.length) {
-      var mainC = tsv[0], ton = P.attrs.ton || [];
-      comp = CAT.filter(function (q) { return q !== P && hasPhoto(q) && isPlain(q) === !pPlain && ((q.attrs.tsvet || []).indexOf(mainC) >= 0); })
-        .map(function (q) {
-          var s = 0, qt = q.attrs.tsvet || [];
-          if (q.collSlug && q.collSlug === P.collSlug && q.brandSlug === P.brandSlug) s += 100; else if (q.brandSlug === P.brandSlug) s += 40;
-          if (ton.some(function (t) { return (q.attrs.ton || []).indexOf(t) >= 0; })) s += 10;
-          if (qt[0] === mainC) s += 6; if (q.type === P.type) s += 4;
-          return [s * 1e6 + Math.min(999999, q.pop || 0), q];
-        }).sort(function (a, b) { return b[0] - a[0]; }).slice(0, 10).map(function (x) { return x[1]; });
-    }
-    var cVal = FAC.byKey.tsvet && FAC.byKey.tsvet.byV[tsv[0]], cName = cVal ? cVal.label.toLowerCase() : "";
-    var compHtml = comp.length ? '<section class="pcomp"><div class="container"><div class="pcomp__head"><div><h2 class="h3">' + (pPlain ? "С рисунком в этом цвете" : "Компаньоны без рисунка") + '</h2><p class="muted">' + (pPlain ? "Обои с рисунком" : "Однотонные обои и фактуры") + (cName ? " — " + esc(cName) + " цвет" : "") + ', чтобы сочетать на соседних стенах</p></div></div><div class="rail" data-rail><div class="rail__track" data-comp></div></div></div></section>' : "";
-    var tryHtml = hasPhoto(P) && P.type !== "mural" ? '<a class="btn btn--ghost ptry" href="/primerka?p=' + encodeURIComponent(P.id) + '"><svg class="ic"><use href="#i-room"/></svg>Примерить на стене</a>' : "";
-    var related = CAT.filter(function (q) { return q !== P && q.collSlug && q.collSlug === P.collSlug && q.brandSlug === P.brandSlug; }).slice(0, 10);
+    /* другие цвета, компаньоны и похожие посчитаны при выкладке (те же правила, что в lib/seo.php) */
+    var tones = data.tones || [], comp = (data.comp && data.comp.items) || [];
+    var compHtml = comp.length ? '<section class="pcomp"><div class="container"><div class="pcomp__head"><div><h2 class="h3">' + esc(data.comp.title) + '</h2><p class="muted">' + esc(data.comp.sub) + '</p></div></div><div class="rail" data-rail><div class="rail__track" data-comp></div></div></div></section>' : "";
+    var tryHtml = P.photo && P.type !== "mural" && !G ? '<a class="btn btn--ghost ptry" href="/primerka?p=' + encodeURIComponent(P.id) + '"><svg class="ic"><use href="#i-room"/></svg>Примерить на стене</a>' : "";
+    var related = data.rel || [];
     var vid = (P.attrs["vid-oboev"] || [])[0], vidVal = vid && FAC.byKey["vid-oboev"].byV[vid];
-    var cr = [["Главная", "/"], ["Каталог", "/catalog"], ["Обои", "/product-category/oboi"]]; if (vidVal) { var VC = { flizelinovye: "/product-category/oboi/flizelinovye", vinilovye: "/product-category/oboi/vinilovye", "vinilovye-na-flizeline": "/product-category/oboi/vinilovye", "pod-pokrasku": "/product-category/oboi/pod-pokrasku", "fotooboi-i-panno": "/product-category/freski" }; cr.push([vidVal.label, VC[vid] || tagUrl("vid-oboev", vid)]); } cr.push([P.brand + " " + P.sku, null]);
+    var gRoot = G ? "/product-category/" + P.kind : "", gSub = G ? (P.attrs.sub || [])[0] : "";
+    var cr = G ? [["Главная", "/"], ["Каталог", "/catalog"], [GCATS[gRoot].h1, gRoot]].concat(gSub ? [[P.subLabel || gSub, GCATS[gRoot + "/" + gSub] ? gRoot + "/" + gSub : gRoot + "?v=" + gSub]] : []).concat([[P.title, null]])
+      : [["Главная", "/"], ["Каталог", "/catalog"], ["Обои", "/product-category/oboi"]]; if (G) { /* крошки готовы */ } else { if (vidVal) { var VC = { flizelinovye: "/product-category/oboi/flizelinovye", vinilovye: "/product-category/oboi/vinilovye", "vinilovye-na-flizeline": "/product-category/oboi/vinilovye", "pod-pokrasku": "/product-category/oboi/pod-pokrasku", "fotooboi-i-panno": "/product-category/freski" }; cr.push([vidVal.label, VC[vid] || tagUrl("vid-oboev", vid)]); } cr.push([P.brand + " " + P.sku, null]); }
     function links(k) { return (P.attrs[k] || []).map(function (v) { var x = FAC.byKey[k] && FAC.byKey[k].byV[v]; return x ? '<a href="' + tagUrl(k, v) + '">' + esc(x.label) + "</a>" : ""; }).filter(Boolean).join(", "); }
-    var rows = [["Бренд", '<a href="/brand/' + P.brandSlug + '">' + esc(P.brand) + "</a>"]];
+    var brandUrl = G ? gRoot + "?b=" + P.brandSlug : "/brand/" + P.brandSlug;
+    var rows = P.brand ? [["Бренд", '<a href="' + brandUrl + '">' + esc(P.brand) + "</a>"]] : [];
+    if (G) { if (P.sku) rows.push(["Артикул", esc(P.sku)]); (P.specs || []).forEach(function (s) { rows.push([esc(s[0]), esc(s[1])]); }); }
+    else {
     if (P.collSlug) rows.push(["Коллекция", '<a href="/brand/' + P.brandSlug + "/" + P.collSlug + '">' + esc(P.coll) + "</a>"]);
     rows.push(["Артикул", esc(P.sku)]);
     [["strana", "Страна производства"], ["vid-oboev", "Вид обоев"], ["tip-oboev", "Тип обоев"], ["pokrytie", "Покрытие"], ["risunok", "Рисунок"], ["stil", "Стиль"], ["pomeshhenie", "Помещение"], ["tsvet", "Цвет"], ["ton", "Тон"], ["shirina", "Ширина рулона"], ["dlina", "Длина рулона"], ["rapport", "Раппорт"]].forEach(function (r) { var l = links(r[0]); if (l) rows.push([r[1], l]); });
     if (P.base) rows.push(["Основа", esc(P.base)]);
     if (P.year) rows.push(["Год коллекции", P.year]);
-    var mini = []; if (size) mini.push(["Рулон", size]); if (P.rapport) mini.push(["Раппорт", String(P.rapport).replace(".", ",") + " см"]); if (P.coll) mini.push(["Коллекция", P.coll]); if (P.country) mini.push(["Страна", P.country]); if (P.colorLabel) mini.push(["Цвет", P.colorLabel]); mini.push(["Артикул", P.sku]);
-    var unit = P.unit === "м²" ? "м²" : "рулон", hasPrice = !!P.price;
+    }
+    var mini = []; if (G) (P.specs || []).forEach(function (s) { if (String(s[1]).length <= 28) mini.push(s); });
+    if (!G) { if (size) mini.push(["Рулон", size]); if (P.rapport) mini.push(["Раппорт", String(P.rapport).replace(".", ",") + " см"]); if (P.coll) mini.push(["Коллекция", P.coll]); if (P.country) mini.push(["Страна", P.country]); if (P.colorLabel) mini.push(["Цвет", P.colorLabel]); mini.push(["Артикул", P.sku]);
+    }
+    var unit = G ? "шт" : P.unit === "м²" ? "м²" : "рулон", hasPrice = !!P.price;
     var snap = JSON.stringify({ id: P.id, sku: P.sku, title: P.title, brand: P.brand, coll: P.coll, price: P.price, old: P.old, unit: P.unit, thumb: P.thumb, img: P.img, type: P.type, typeLabel: P.typeLabel, roll: P.roll, rapport: P.rapport, badges: P.badges });
     var badges = DC.badgeHtml(P);
     document.title = title + " — купить, " + (hasPrice ? rub(P.price) : "цена по запросу") + " | Decando";
@@ -265,9 +280,9 @@
       '<div class="pgal">' + (gallery.length > 1 ? '<div class="pgal__thumbs" role="tablist">' + gallery.map(function (g, i) { return '<button type="button" class="pgal__thumb' + (i ? "" : " is-on") + '" data-gthumb="' + esc(g) + '" role="tab"><img src="' + esc(g) + '" alt="" loading="lazy"></button>'; }).join("") + "</div>" : "") +
       '<div class="pgal__main" data-gmain data-ph="' + esc(P.brand + " · " + P.sku) + '">' + (gallery.length ? '<img src="' + esc(gallery[0]) + '" alt="' + esc(title) + '">' : "") + '<span class="pgal__badges">' + badges + "</span></div></div>" +
       '<div class="pinfo" data-info data-ssr><p class="pinfo__sku">Арт.: ' + esc(P.sku) + '</p><h1 class="pinfo__title">' + esc(title) + "</h1>" +
-      '<p class="pinfo__brand"><a href="/brand/' + P.brandSlug + '">' + esc(P.brand) + "</a>" + (P.collSlug ? ' · <a href="/brand/' + P.brandSlug + "/" + P.collSlug + '">коллекция ' + esc(P.coll) + "</a>" : "") + "</p>" +
+      '<p class="pinfo__brand"><a href="' + brandUrl + '">' + esc(P.brand) + "</a>" + (P.collSlug && !G ? ' · <a href="/brand/' + P.brandSlug + "/" + P.collSlug + '">коллекция ' + esc(P.coll) + "</a>" : "") + "</p>" +
       (hasPrice ? '<div class="pinfo__price"><b>' + rub(P.price) + "</b>" + (P.old ? "<s>" + rub(P.old) + "</s>" : "") + "<small>/ " + unit + "</small></div>" : '<div class="pinfo__price"><b class="price-ask">Цена по запросу</b></div>') +
-      (tones.length > 1 ? '<div class="pinfo__tones"><p class="pinfo__label">Другие цвета этого рисунка</p><div class="pinfo__tones-row">' + tones.map(function (q) { var u = D.img(q); return '<a class="tone-img' + (q === P ? " is-on" : "") + '" href="/product/' + q.id + '" title="' + esc(q.sku) + '">' + (u ? '<img src="' + esc(u) + '" alt="" loading="lazy">' : "") + "</a>"; }).join("") + "</div></div>" : "") +
+      (tones.length > 1 ? '<div class="pinfo__tones"><p class="pinfo__label">Другие цвета этого рисунка</p><div class="pinfo__tones-row">' + tones.map(function (q) { var u = D.img(q); return '<a class="tone-img' + (q.id === P.id ? " is-on" : "") + '" href="/product/' + q.id + '" title="' + esc(q.sku) + '">' + (u ? '<img src="' + esc(u) + '" alt="" loading="lazy">' : "") + "</a>"; }).join("") + "</div></div>" : "") +
       '<div class="pinfo__specs">' + mini.slice(0, 4).map(function (s) { return "<div><span>" + esc(s[0]) + "</span><b>" + esc(s[1]) + "</b></div>"; }).join("") + "</div>" +
       (hasPrice && roll ? '<details class="pcalc"><summary><svg class="ic"><use href="#i-ruler"/></svg>Сколько рулонов нужно?</summary><div class="mini-calc" data-mini><div class="mini-calc__row">' +
         '<div class="field"><input class="field__input" id="mL" type="number" step="0.1" min="1" value="4" placeholder=" " data-m="l"><label class="field__label" for="mL">Длина, м</label></div>' +
@@ -288,6 +303,67 @@
     related.forEach(function (q) { D.byId[q.id] = D.byId[q.id] || q; if (relBox) relBox.appendChild(DC.card(q)); });
     document.body.classList.add("page-product");
     afterRender(["/assets/js/product.js"]);
+  }
+
+  /* ---------- краска и лепнина: /product-category/kraska…, /product-category/lepnina ---------- */
+  function goodsListing(p0) {
+    var C = GCATS[p0], qs = new URLSearchParams(location.search), ok = function (s) { return /^[a-z0-9-]{1,60}$/.test(s || "") ? s : ""; };
+    var v = C.sub ? "" : ok(qs.get("v")), b = ok(qs.get("b")), sort = ["cheap", "exp", "sale"].indexOf(qs.get("sort")) >= 0 ? qs.get("sort") : "pop", page = Math.max(1, PAGE);
+    var pool = GOODS.filter(function (p) { return p.kind === C.kind && (!C.sub || p.attrs.sub.indexOf(C.sub) >= 0); });
+    var subs = {}, brands = {}, all = [];
+    pool.forEach(function (p) {
+      var okV = !v || p.attrs.sub.indexOf(v) >= 0, okB = !b || p.brandSlug === b;
+      if (okB) p.attrs.sub.forEach(function (s) { (subs[s] = subs[s] || { label: p.subLabel || s, n: 0 }).n++; });
+      if (okV && p.brandSlug) (brands[p.brandSlug] = brands[p.brandSlug] || { label: p.brand, n: 0 }).n++;
+      if (okV && okB && (sort !== "sale" || p.old)) all.push(p);
+    });
+    if ((v && !subs[v]) || (b && !brands[b])) return notFound();
+    var cmp = { pop: function (x, y) { return y.pop - x.pop; }, cheap: function (x, y) { return (!x.price - !y.price) || x.price - y.price; }, exp: function (x, y) { return y.price - x.price; },
+      sale: function (x, y) { return ((y.old ? 1 - y.price / y.old : 0) - (x.old ? 1 - x.price / x.old : 0)) || y.pop - x.pop; } };
+    all.sort(cmp[sort]);
+    var byN = function (o) { return Object.keys(o).sort(function (x, y) { return o[y].n - o[x].n; }); };
+    var subKeys = byN(subs), brandKeys = byN(brands);
+    var per = 24, total = all.length, pages = Math.max(1, Math.ceil(total / per));
+    if (page > pages) return notFound();
+    var shown = all.slice((page - 1) * per, page * per);
+    function url(nv, nb, ns, pg) { var q = new URLSearchParams(); if (nv) q.set("v", nv); if (nb) q.set("b", nb); if (ns !== "pop") q.set("sort", ns); var s = q.toString(); return p0 + (pg > 1 ? "/page/" + pg : "") + (s ? "?" + s : ""); }
+    var h1 = C.h1, parts = []; if (v) parts.push(subs[v].label.toLowerCase()); if (b) parts.push(brands[b].label); if (parts.length) h1 += ": " + parts.join(", ");
+    var word = plural(total, "товар", "товара", "товаров"), root = "/product-category/" + C.kind;
+    var intro = total + " " + word + (C.kind === "lepnina" && !v && subKeys.length ? ": " + subKeys.slice(0, 5).map(function (s) { return subs[s].label.toLowerCase(); }).join(", ") + " и другой декор" : "") +
+      (brandKeys.length ? (C.kind === "lepnina" && !v ? " — " : " — бренды ") + brandKeys.slice(0, 4).map(function (s) { return brands[s].label; }).join(", ") : "") + ".";
+    var cr = [["Главная", "/"], ["Каталог", "/catalog"]]; if (p0 !== root) cr.push([GCATS[root].h1, root]); cr.push([parts.length ? h1 : C.h1, null]);
+    document.title = h1 + (page > 1 ? " — страница " + page : "") + " | Decando";
+    function opt(href, label, n, on, hid) { return '<a class="fopt' + (on ? " is-on" : "") + (hid && !on ? " is-hid" : "") + '" href="' + esc(href) + '"><i></i><span>' + esc(label) + "</span><em>" + n + "</em></a>"; }
+    var side = "";
+    if (!C.sub && C.kind === "lepnina" && subKeys.length) {
+      side += '<div class="fgroup" data-fgroup="sub"><p class="fgroup__t">Вид изделия</p><div class="fopts">' + subKeys.map(function (s, i) { return opt(url(v === s ? "" : s, b, sort, 1), subs[s].label, subs[s].n, v === s, i >= 10); }).join("") + "</div>" +
+        (subKeys.length > 10 ? '<button type="button" class="fmore" data-fmore>Ещё ' + (subKeys.length - 10) + "</button>" : "") + "</div>";
+    }
+    if (brandKeys.length) side += '<div class="fgroup" data-fgroup="brand"><p class="fgroup__t">Бренд</p><div class="fopts">' + brandKeys.map(function (s) { return opt(url(v, b === s ? "" : s, sort, 1), brands[s].label, brands[s].n, b === s, false); }).join("") + "</div></div>";
+    var chip = function (label, href) { return '<a class="chip" href="' + esc(href) + '">' + esc(label) + '<svg class="ic"><use href="#i-close"/></svg></a>'; };
+    var chips = v || b ? '<div class="active-filters">' + (v ? chip(subs[v].label, url("", b, sort, 1)) : "") + (b ? chip(brands[b].label, url(v, "", sort, 1)) : "") + "</div>" : "";
+    var pager = "";
+    if (pages > 1) {
+      pager = '<nav class="pager" aria-label="Страницы">' + (page > 1 ? '<a class="pager__btn" href="' + esc(url(v, b, sort, page - 1)) + '">←<span> Назад</span></a>' : "");
+      var win = [1, pages]; for (var i = Math.max(1, page - 2); i <= Math.min(pages, page + 2); i++) win.push(i);
+      win = win.filter(function (x, i2, a) { return a.indexOf(x) === i2; }).sort(function (x, y) { return x - y; });
+      var prev = 0;
+      win.forEach(function (n) { if (prev && n - prev > 1) pager += '<span class="pager__dots">…</span>'; pager += n === page ? '<span class="pager__n is-on">' + n + "</span>" : '<a class="pager__n" href="' + esc(url(v, b, sort, n)) + '">' + n + "</a>"; prev = n; });
+      pager += (page < pages ? '<a class="pager__btn" href="' + esc(url(v, b, sort, page + 1)) + '"><span>Дальше </span>→</a>' : "") + "</nav>";
+    }
+    var nav = Object.keys(GCATS).filter(function (c) { return GCATS[c].kind === C.kind; });
+    var sorts = [["pop", "Сначала популярные"], ["cheap", "Сначала дешевле"], ["exp", "Сначала дороже"], ["sale", "Со скидкой"]];
+    root_.innerHTML =
+      '<section class="page-head"><div class="container"><nav class="crumbs" aria-label="Навигация">' + crumbs(cr) + '</nav><div class="page-head__row"><div><h1 class="page-head__title page-head__title--tag">' + esc(h1) + '</h1><p class="page-head__sub">' + esc(intro) + "</p></div></div>" +
+      (nav.length > 1 ? '<nav class="catnav" aria-label="Разделы">' + nav.map(function (c) { return '<a href="' + c + '"' + (c === p0 ? ' class="is-on" aria-current="page"' : "") + ">" + GCATS[c].label + "</a>"; }).join("") + "</nav>" : "") + "</div></section>" +
+      '<div class="container cat"><aside class="filters" data-filters aria-label="Фильтры"><div class="filters__head"><b class="h3" style="font-size:28px">Фильтры</b><button type="button" class="iconbtn" data-filters-close aria-label="Закрыть фильтры"><svg class="ic"><use href="#i-close"/></svg></button></div>' + side + "</aside><div>" +
+      '<div class="cat__bar"><p class="cat__count"><b>' + total + "</b> " + word + '</p><div class="cat__tools"><button type="button" class="btn btn--ghost btn--sm cat__filter-btn" data-filters-open><svg class="ic"><use href="#i-filter"/></svg>Фильтры</button><select class="sort" data-sort aria-label="Сортировка">' +
+      sorts.map(function (s) { return '<option value="' + s[0] + '"' + (s[0] === sort ? " selected" : "") + ">" + s[1] + "</option>"; }).join("") + "</select></div></div>" + chips +
+      (total ? '<div class="pgrid" data-grid></div>' + pager : '<div class="cat__empty"><p class="h3">Ничего не нашлось</p><p class="muted">Попробуйте убрать часть фильтров.</p><a class="btn btn--ghost" href="' + root + '">Весь раздел</a></div>') + "</div></div>";
+    var grid = $("[data-grid]", root_);
+    shown.forEach(function (p) { D.byId[p.id] = D.byId[p.id] || p; if (grid) grid.appendChild(DC.card(p)); });
+    DC.hydrateCards(root_);
+    afterRender(["/assets/js/tag.js"]);
   }
 
   function afterRender(scripts) {

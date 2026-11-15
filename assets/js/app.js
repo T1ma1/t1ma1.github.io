@@ -85,7 +85,7 @@
     var map = { hit: ["hit", "Хит"], new: ["new", "Новинка"], sale: ["sale", p.old ? "−" + Math.round((1 - p.price / p.old) * 100) + "%" : "Скидка"] };
     return p.badges.map(function (b) { var m = map[b]; return m ? '<span class="badge badge--' + m[0] + '">' + m[1] + "</span>" : ""; }).join("");
   }
-  function unitLabel(p) { return p.unit === "м²" ? "/ м²" : "/ рулон"; }
+  function unitLabel(p) { return p.unit === "м²" ? "/ м²" : p.unit === "шт" ? "/ шт" : "/ рулон"; }
   /* карточка — та же разметка, что dc_card() в lib/seo.php: фото, артикул, название, цена, корзина */
   function card(p, opt) {
     opt = opt || {};
