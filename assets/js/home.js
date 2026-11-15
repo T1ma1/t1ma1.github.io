@@ -43,6 +43,22 @@
       if (Math.abs(dx) > 36 && Math.abs(dx) > Math.abs(dy) * 1.3) { show(cur + (dx < 0 ? 1 : -1)); loop(); }
     }, { passive: true });
     if (dots) dots.addEventListener("click", function (e) { var k = Array.prototype.indexOf.call(dots.children, e.target); if (k >= 0) { e.preventDefault(); e.stopPropagation(); show(k); loop(); } });
+    /* на компьютере: стрелки по бокам арки, перетаскивание мышью, клавиши ← → */
+    var stage = zone.parentNode;
+    if (stage && slides.length > 1) {
+      [[-1, "prev", "Предыдущий интерьер", "#i-arrow-l"], [1, "next", "Следующий интерьер", "#i-arrow"]].forEach(function (a) {
+        var b = document.createElement("button");
+        b.type = "button"; b.className = "hero__nav hero__nav--" + a[1]; b.setAttribute("aria-label", a[2]);
+        b.innerHTML = '<svg class="ic"><use href="' + a[3] + '"/></svg>';
+        b.addEventListener("click", function () { show(cur + a[0]); loop(); });
+        stage.appendChild(b);
+      });
+      var m0 = null;
+      zone.addEventListener("mousedown", function (e) { if (e.button === 0) { m0 = e.clientX; e.preventDefault(); } });
+      window.addEventListener("mouseup", function (e) { if (m0 === null) return; var dx = e.clientX - m0; m0 = null; if (Math.abs(dx) > 40) { show(cur + (dx < 0 ? 1 : -1)); loop(); } });
+      stage.setAttribute("tabindex", "0");
+      stage.addEventListener("keydown", function (e) { if (e.key === "ArrowLeft") { show(cur - 1); loop(); } else if (e.key === "ArrowRight") { show(cur + 1); loop(); } });
+    }
     loop();
   })();
 
