@@ -40,9 +40,11 @@
   function searchHits(q) {
     var words = norm(q).split(" ").filter(Boolean).slice(0, 6);
     if (!words.length) return [];
-    return CAT.filter(function (p) {
-      var t = p._s || (p._s = (function () { var cv = FAC.byKey.tsvet && FAC.byKey.tsvet.byV[(p.attrs.tsvet || [])[0]]; var x = norm(p.title + " " + p.brand + " " + p.coll + " " + p.sku + " " + (p.typeLabel || "") + " " + (cv ? cv.label : "")); return x + " " + x.replace(/[-\s._]/g, ""); })());
-      return words.every(function (w) { return t.indexOf(w) >= 0 || (w.length > 4 && t.indexOf(w.slice(0, -2)) >= 0); });
+    return CAT.concat(GOODS || []).filter(function (p) {
+      var t = p._s || (p._s = (function () { var lab = ""; ["tsvet", "risunok", "stil", "pomeshhenie"].forEach(function (k) { ((p.attrs && p.attrs[k]) || []).forEach(function (v) { var o = FAC.byKey[k] && FAC.byKey[k].byV[v]; if (o) lab += " " + o.label; }); });
+        if (p.kind) lab += " " + (p.kind === "kraska" ? "краска" : "лепнина") + " " + (p.subLabel || "");
+        var x = norm(p.title + " " + p.brand + " " + (p.coll || "") + " " + p.sku + " " + (p.typeLabel || "") + lab); return x + " " + x.replace(/[-\s._]/g, ""); })());
+      return words.every(function (w) { return t.indexOf(w) >= 0 || (w.length > 4 && !/\d/.test(w) && t.indexOf(w.slice(0, -2)) >= 0); });
     });
   }
   var nativeFetch = window.fetch.bind(window);
@@ -50,8 +52,8 @@
     var u = String(url);
     if (u.indexOf("/api/search.php") === 0) {
       var q = new URL(u, location.origin).searchParams.get("q") || "";
-      return load().then(function () {
-        var hits = searchHits(q).sort(function (a, b) { return b.pop - a.pop; });
+      return Promise.all([load(), loadGoods()]).then(function () {
+        var qn = norm(q).replace(/[-\s._]/g, ""), hits = searchHits(q).sort(function (a, b) { return (norm(b.sku).replace(/[-\s._]/g, "") === qn) - (norm(a.sku).replace(/[-\s._]/g, "") === qn) || b.pop - a.pop; });
         return new Response(JSON.stringify({ total: hits.length, items: hits.slice(0, 8) }), { headers: { "Content-Type": "application/json" } });
       });
     }
@@ -126,7 +128,7 @@
       for (var k in flt) { var have = p.attrs[k] || []; if (!flt[k].some(function (v) { return have.indexOf(v) >= 0; })) return false; }
       return true;
     }
-    var pool = q ? searchHits(q) : CAT;
+    var pool = q ? searchHits(q).filter(function (p) { return !p.kind; }) : CAT;
     var items = pool.filter(function (p) { return match(p, active, br) && ((sort !== "sale" && !saleOnly) || p.old); });
     var cmp = {
       pop: function (a, b) { return b.pop - a.pop; },
@@ -250,7 +252,7 @@
     /* другие цвета, компаньоны и похожие посчитаны при выкладке (те же правила, что в lib/seo.php) */
     var tones = data.tones || [], comp = (data.comp && data.comp.items) || [];
     var compHtml = comp.length ? '<section class="pcomp"><div class="container"><div class="pcomp__head"><div><h2 class="h3">' + esc(data.comp.title) + '</h2><p class="muted">' + esc(data.comp.sub) + '</p></div></div><div class="rail" data-rail><div class="rail__track" data-comp></div></div></div></section>' : "";
-    var tryHtml = P.photo && P.type !== "mural" && !G ? '<a class="btn btn--ghost ptry" href="/primerka?p=' + encodeURIComponent(P.id) + '"><svg class="ic"><use href="#i-room"/></svg>Примерить на стене</a>' : "";
+    var tryHtml = P.photo && P.type !== "mural" && !G && !(roll && (roll[0] > 1.4 || roll[0] < 0.4)) ? '<a class="btn btn--ghost ptry" href="/primerka?p=' + encodeURIComponent(P.id) + '"><svg class="ic"><use href="#i-room"/></svg>Примерить на стене</a>' : "";
     var related = data.rel || [];
     var vid = (P.attrs["vid-oboev"] || [])[0], vidVal = vid && FAC.byKey["vid-oboev"].byV[vid];
     var gRoot = G ? "/product-category/" + P.kind : "", gSub = G ? (P.attrs.sub || [])[0] : "";

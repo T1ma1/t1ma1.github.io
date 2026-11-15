@@ -86,6 +86,8 @@
     return p.badges.map(function (b) { var m = map[b]; return m ? '<span class="badge badge--' + m[0] + '">' + m[1] + "</span>" : ""; }).join("");
   }
   function unitLabel(p) { return p.unit === "м²" ? "/ м²" : p.unit === "шт" ? "/ шт" : "/ рулон"; }
+  /* «2 рулона», «3 шт», «12 м²» */
+  function qtyLabel(p, n) { return p.unit === "м²" ? "м²" : p.unit === "шт" ? "шт" : plural(n, "рулон", "рулона", "рулонов"); }
   /* карточка — та же разметка, что dc_card() в lib/seo.php: фото, артикул, название, цена, корзина */
   function card(p, opt) {
     opt = opt || {};
@@ -153,7 +155,7 @@
       e.preventDefault();
       var pid = a.getAttribute("data-add"), qty = +(a.getAttribute("data-qty") || 1), pr = D.byId[pid];
       cart.add(pid, qty);
-      toast({ title: "В корзине: " + pr.title, text: qty + " " + (pr.unit === "м²" ? "м²" : plural(qty, "рулон", "рулона", "рулонов")) + " · " + rub(pr.price * qty), product: pr, link: { href: "/cart", text: "Оформить" } });
+      toast({ title: "В корзине: " + pr.title, text: qty + " " + qtyLabel(pr, qty) + " · " + rub(pr.price * qty), product: pr, link: { href: "/cart", text: "Оформить" } });
     }
   });
 
@@ -637,6 +639,6 @@
   window.DC = {
     $: $, $$: $$, esc: esc, plural: plural, rub: rub, store: store, cart: cart, fav: fav, onChange: function (fn) { listeners.push(fn); },
     card: card, patBg: patBg, hydrateCards: hydrateCards, paintPatterns: paintPatterns, toast: toast, openLead: openLead, openQuiz: openQuiz, showModal: showModal, hideModal: hideModal,
-    sendLead: sendLead, validate: validate, reveal: reveal, rail: rail, rolls: rolls, unitLabel: unitLabel, badgeHtml: badgeHtml, roomImg: roomImg
+    sendLead: sendLead, validate: validate, reveal: reveal, rail: rail, rolls: rolls, unitLabel: unitLabel, qtyLabel: qtyLabel, badgeHtml: badgeHtml, roomImg: roomImg
   };
 })();

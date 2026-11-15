@@ -21,16 +21,16 @@
         var f = $("[data-form='checkout']", root), fd = new FormData(f);
         formState = {}; fd.forEach(function (v, k) { formState[k] = v; });
       }
-      var total = DC.cart.total(), n = DC.cart.count(), rolls = items.filter(function (i) { return D.byId[i.id].unit !== "м²"; }).reduce(function (s, i) { return s + i.qty; }, 0);
+      var total = DC.cart.total(), n = DC.cart.count(), rolls = items.filter(function (i) { var un = D.byId[i.id].unit; return un !== "м²" && un !== "шт"; }).reduce(function (s, i) { return s + i.qty; }, 0);
       root.innerHTML =
         '<div class="cart"><div><div class="cart__list">' + items.map(function (it) {
           var p = D.byId[it.id], u = p.unit === "м²";
           return '<div class="citem"><a class="citem__sw" href="/product/' + p.id + '" data-sw="' + p.id + '" aria-label="' + esc(p.title) + '"></a><div>' +
             '<p class="pcard__brand">' + esc(D.F.type[p.type]) + '</p><a class="citem__t" href="/product/' + p.id + '">' + esc(p.title) + "</a>" +
-            '<p class="citem__s">' + esc(D.sizeLabel(p)) + " · " + DC.rub(p.price) + " " + DC.unitLabel(p) + "</p>" +
+            '<p class="citem__s">' + (D.sizeLabel(p) ? esc(D.sizeLabel(p)) + " · " : "") + DC.rub(p.price) + " " + DC.unitLabel(p) + "</p>" +
             '<div class="citem__ctrl"><div class="stepper"><button type="button" data-dq="-1" data-id="' + p.id + '" aria-label="Меньше"><svg class="ic"><use href="#i-minus"/></svg></button>' +
             '<input type="number" min="1" max="999" value="' + it.qty + '" data-qid="' + p.id + '" aria-label="Количество"><button type="button" data-dq="1" data-id="' + p.id + '" aria-label="Больше"><svg class="ic"><use href="#i-plus"/></svg></button></div>' +
-            '<span class="muted" style="font-size:13px">' + (u ? "м²" : DC.plural(it.qty, "рулон", "рулона", "рулонов")) + "</span>" +
+            '<span class="muted" style="font-size:13px">' + DC.qtyLabel(p, it.qty) + "</span>" +
             '<a class="citem__rm" href="/product/' + encodeURIComponent(p.id) + '">Открыть</a><button type="button" class="citem__rm" data-rm="' + p.id + '">Удалить</button></div></div>' +
             '<p class="citem__sum">' + DC.rub(p.price * it.qty) + (p.old ? "<small><s>" + DC.rub(p.old * it.qty) + "</s></small>" : "") + "</p></div>";
         }).join("") + "</div>" +
@@ -62,7 +62,7 @@
         '<div class="summary__row"><span>Товаров</span><span>' + items.length + " " + DC.plural(items.length, "позиция", "позиции", "позиций") + (rolls ? " · " + rolls + " " + DC.plural(rolls, "рулон", "рулона", "рулонов") : "") + "</span></div>" +
         '<div class="summary__row"><span>Доставка</span><span>рассчитает менеджер</span></div>' +
         '<div class="summary__total"><span>Итого</span><b>' + DC.rub(total) + "</b></div>" +
-        '<p class="muted" style="font-size:13px">Совет: возьмите 1 рулон в запас — у разных партий может отличаться тон.</p>' +
+        (rolls ? '<p class="muted" style="font-size:13px">Совет: возьмите 1 рулон в запас — у разных партий может отличаться тон.</p>' : "") +
         '<button type="button" class="btn btn--ghost btn--block" data-goto-form>К оформлению</button>' +
         '<button type="button" class="btn btn--ghost btn--block" data-lead="callback">Нужна консультация</button></aside></div>';
       $$("[data-sw]", root).forEach(function (el) { DC.patBg(el, D.byId[el.getAttribute("data-sw")], 30); });
