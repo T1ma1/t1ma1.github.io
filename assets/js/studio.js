@@ -337,14 +337,26 @@
         if (!src) return res(null);
         var im = new Image();
         im.onload = function () {
-          var S = 1024, h = S / 2, cv = document.createElement("canvas"); cv.width = cv.height = S;
-          var x = cv.getContext("2d");
-          [[1, 1, 0, 0], [-1, 1, S, 0], [1, -1, 0, S], [-1, -1, S, S]].forEach(function (q) {
-            x.setTransform(q[0], 0, 0, q[1], q[2], q[3]); x.drawImage(im, 0, 0, h, h);
-          });
-          x.setTransform(1, 0, 0, 1, 0, 0);
-          var w = Math.min(p.roll ? p.roll[0] : 1.06, 1.06);
-          res({ cv: cv, w: w * 2, h: w * 2 * im.naturalHeight / im.naturalWidth });
+          /* Образец повторяем как есть, без зеркала (зеркало давало «бабочек» на крупном рисунке).
+             Чтобы на стыках не было резкой линии, край образца (12%) плавно перетекает в противоположный. */
+          var K = 0.12, W = im.naturalWidth, H = im.naturalHeight;
+          function mk(w, h) { var c = document.createElement("canvas"); c.width = w; c.height = h; return c; }
+          function wrap(src, sw, sh, horiz) {
+            var b = Math.max(1, Math.round((horiz ? sw : sh) * K)), ow = horiz ? sw - b : sw, oh = horiz ? sh : sh - b;
+            var c = mk(ow, oh), x = c.getContext("2d"); x.drawImage(src, 0, 0);
+            var t = mk(horiz ? b : sw, horiz ? sh : b), y = t.getContext("2d");
+            y.drawImage(src, horiz ? -ow : 0, horiz ? 0 : -oh);
+            y.globalCompositeOperation = "destination-in";
+            var g = y.createLinearGradient(0, 0, horiz ? b : 0, horiz ? 0 : b);
+            g.addColorStop(0, "rgba(0,0,0,1)"); g.addColorStop(1, "rgba(0,0,0,0)");
+            y.fillStyle = g; y.fillRect(0, 0, t.width, t.height);
+            x.drawImage(t, 0, 0);
+            return c;
+          }
+          var c1 = wrap(im, W, H, true), c2 = wrap(c1, c1.width, H, false);
+          var S = 1024, cv = mk(S, S); cv.getContext("2d").drawImage(c2, 0, 0, S, S);
+          var w = Math.min(p.roll ? p.roll[0] : 1.06, 1.06) * (c2.width / W);
+          res({ cv: cv, w: w, h: w * c2.height / c2.width });
         };
         im.onerror = function () { res(null); };
         im.src = src;

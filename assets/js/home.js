@@ -35,6 +35,14 @@
     function loop() { clearTimeout(timer); timer = setTimeout(function () { if (!document.hidden) show(cur + 1); loop(); }, reduce ? 9000 : 5200); }
     /* следующий кадр подгружаем заранее, чтобы смена была без пустой арки */
     slides.slice(1, 3).forEach(function (s) { s.loading = "eager"; });
+    /* листать самому: свайп по арке и нажатие на точки */
+    var zone = box.parentNode || box, t0 = null;
+    zone.addEventListener("touchstart", function (e) { var t = e.touches[0]; t0 = { x: t.clientX, y: t.clientY }; }, { passive: true });
+    zone.addEventListener("touchend", function (e) {
+      if (!t0) return; var t = e.changedTouches[0], dx = t.clientX - t0.x, dy = t.clientY - t0.y; t0 = null;
+      if (Math.abs(dx) > 36 && Math.abs(dx) > Math.abs(dy) * 1.3) { show(cur + (dx < 0 ? 1 : -1)); loop(); }
+    }, { passive: true });
+    if (dots) dots.addEventListener("click", function (e) { var k = Array.prototype.indexOf.call(dots.children, e.target); if (k >= 0) { e.preventDefault(); e.stopPropagation(); show(k); loop(); } });
     loop();
   })();
 

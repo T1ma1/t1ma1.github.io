@@ -286,3 +286,7 @@ img.mega__promo-art { width: 100%; height: 100%; object-fit: cover; }
 /* скорость: без заставки, блоки появляются быстро (заказчик: «сайт долгий») */
 .reveal { transform: translateY(14px); transition-duration: .45s; }
 .reveal-d1 { transition-delay: .04s; } .reveal-d2 { transition-delay: .08s; } .reveal-d3 { transition-delay: .12s; } .reveal-d4 { transition-delay: .16s; }
+
+/* слайдер первого экрана листается пальцем; точки — кнопки */
+.hero__slides { touch-action: pan-y; }
+.hero__card-dots i { cursor: pointer; }
