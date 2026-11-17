@@ -27,7 +27,7 @@
         $("[data-hero-card-title]", card).textContent = s.getAttribute("data-title");
         $("[data-hero-card-sub]", card).textContent = s.getAttribute("data-sub");
         $("[data-hero-card-img]", card).src = s.currentSrc || s.src;
-        card.href = "/" + s.getAttribute("data-href");
+        card.href = "/" + String(s.getAttribute("data-href") || "").replace(/^\/+/, "");
         if (dots) $$("i", dots).forEach(function (d, k) { d.classList.toggle("is-on", k === cur); });
         card.classList.remove("is-swap");
       }, 260);
@@ -129,6 +129,22 @@
       clearTimeout(timer); if (!reduce) timer = setTimeout(function () { go(document.hidden ? cur : cur + 1); }, 4200);
     }
     go(0);
+    imgs.forEach(function (im) { var f = function () { if (im.naturalHeight > im.naturalWidth) im.classList.add("is-tall"); }; if (im.complete && im.naturalWidth) f(); else im.addEventListener("load", f); });
+    [[-1, "prev", "Предыдущее фото", "#i-arrow-l"], [1, "next", "Следующее фото", "#i-arrow"]].forEach(function (a) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "shops__nav shops__nav--" + a[1]; b.setAttribute("aria-label", a[2]);
+      b.innerHTML = '<svg class="ic"><use href="' + a[3] + '"/></svg>';
+      b.addEventListener("click", function () { go(cur + a[0]); });
+      g.appendChild(b);
+    });
+    var t0 = null, m0 = null;
+    g.addEventListener("touchstart", function (e) { var t = e.touches[0]; t0 = { x: t.clientX, y: t.clientY }; }, { passive: true });
+    g.addEventListener("touchend", function (e) {
+      if (!t0) return; var t = e.changedTouches[0], dx = t.clientX - t0.x, dy = t.clientY - t0.y; t0 = null;
+      if (Math.abs(dx) > 36 && Math.abs(dx) > Math.abs(dy) * 1.3) go(cur + (dx < 0 ? 1 : -1));
+    }, { passive: true });
+    g.addEventListener("mousedown", function (e) { if (e.button === 0 && !e.target.closest("button")) { m0 = e.clientX; e.preventDefault(); } });
+    window.addEventListener("mouseup", function (e) { if (m0 === null) return; var dx = e.clientX - m0; m0 = null; if (Math.abs(dx) > 40) go(cur + (dx < 0 ? 1 : -1)); });
   })();
 
   /* ---------- магазины: вкладки по городам и карта (точка по координатам — без рекламы на карте) ---------- */

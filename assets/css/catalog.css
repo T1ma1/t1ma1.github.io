@@ -301,3 +301,25 @@ img.mega__promo-art { width: 100%; height: 100%; object-fit: cover; }
 .hero__stage:focus { outline: none; }
 .hero__stage:focus-visible { outline: 2px solid #df372f; outline-offset: 6px; }
 @media (max-width: 900px) { .hero__nav { width: 38px; height: 38px; } .hero__nav--prev { left: 6px; } .hero__nav--next { right: 6px; } }
+
+/* ---------- правки 17.11 ---------- */
+/* фото шоурумов: стрелки, на телефоне и планшете кадр целиком (3:2), вертикальные фото — без обрезки */
+.shops__photo { touch-action: pan-y; cursor: grab; }
+.shops__nav { position: absolute; top: 50%; z-index: 3; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, .92); color: #1e1e1e; box-shadow: 0 6px 20px rgba(30, 30, 30, .18); transform: translateY(-50%); transition: background .2s, color .2s; }
+.shops__nav:hover { background: #df372f; color: #fff; }
+.shops__nav .ic { width: 16px; height: 16px; }
+.shops__nav--prev { left: 10px; }
+.shops__nav--next { right: 10px; }
+.shops__photo img, .shops__photo img.is-on, .shops:hover .shops__photo img.is-on { transform: none; transition: opacity .5s var(--ease); }
+@media (max-width: 1080px) {
+  .shops__photo { min-height: 0; aspect-ratio: 3 / 2; background: #f6f6f6; }
+  .shops__photo img.is-tall { object-fit: contain; }
+}
+/* города шоурумов: на телефоне 2 × 2 */
+@media (max-width: 760px) {
+  .shops__tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .shops__tabs button { width: 100%; padding: 0 8px; }
+}
+/* фон формы заявки — фото шоурума: затемняем сильнее, чтобы текст читался */
+.cta-final::before { background: linear-gradient(90deg, rgba(20, 16, 14, .92) 0%, rgba(20, 16, 14, .82) 50%, rgba(20, 16, 14, .66) 100%); }
+@media (max-width: 1080px) { .cta-final::before { background: linear-gradient(180deg, rgba(20, 16, 14, .84), rgba(20, 16, 14, .9)); } }

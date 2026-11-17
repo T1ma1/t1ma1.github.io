@@ -248,7 +248,7 @@ a:hover > .link-arrow .ic, .link-arrow:hover .ic { transform: translateX(4px); }
 .mnav { position: fixed; inset: calc(var(--header-h)) 0 0; z-index: 89; background: var(--paper); overflow-y: auto; animation: fadeIn .3s var(--ease); }
 .mnav__in { padding: 20px var(--gutter) 120px; display: flex; flex-direction: column; gap: 28px; }
 .mnav__nav { display: flex; flex-direction: column; }
-.mnav__nav a, .mnav__nav button { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); font: 500 18px/1.25 var(--sans); text-align: left; }
+.mnav__nav a, .mnav__nav button { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); font: 500 21px/1.15 var(--display); text-align: left; }
 .mnav__chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .mnav__phone { font: 600 22px/1 var(--sans); }
 .mnav__contacts { display: flex; flex-direction: column; gap: 8px; color: var(--muted); }
