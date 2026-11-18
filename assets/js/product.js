@@ -28,6 +28,34 @@
     main.addEventListener("mouseleave", function () { main.classList.remove("is-zoom"); });
   }
 
+  /* ---------- просмотр фото: нажатие открывает снимок на весь экран (стрелки и свайп — если фото несколько) ---------- */
+  if (main && mainImg) {
+    var lbSrcs = function () { var a = $$("[data-gthumb]").map ? $$("[data-gthumb]") : Array.prototype.slice.call($$("[data-gthumb]")); a = Array.prototype.map.call(a, function (b) { return b.getAttribute("data-gthumb"); }); return a.length ? a : [mainImg.getAttribute("src")]; };
+    var lb = null, lbI = 0, lbList = [];
+    var lbShow = function (i) { lbI = (i + lbList.length) % lbList.length; $("img", lb).src = lbList[lbI]; var c = $("[data-lb-count]", lb); if (c) c.textContent = lbList.length > 1 ? (lbI + 1) + " / " + lbList.length : ""; };
+    var lbClose = function () { if (!lb) return; lb.remove(); lb = null; document.body.classList.remove("is-locked"); document.removeEventListener("keydown", lbKey); };
+    var lbKey = function (e) { if (e.key === "Escape") lbClose(); else if (e.key === "ArrowLeft") lbShow(lbI - 1); else if (e.key === "ArrowRight") lbShow(lbI + 1); };
+    main.addEventListener("click", function () {
+      if (!mainImg.getAttribute("src") || main.classList.contains("is-noimg")) return;
+      lbList = lbSrcs(); lbI = Math.max(0, lbList.indexOf(mainImg.getAttribute("src")));
+      lb = document.createElement("div"); lb.className = "lbox"; lb.setAttribute("role", "dialog"); lb.setAttribute("aria-label", "Просмотр фото");
+      lb.innerHTML = '<button type="button" class="lbox__x" aria-label="Закрыть"><svg class="ic"><use href="#i-close"/></svg></button>' +
+        (lbList.length > 1 ? '<button type="button" class="lbox__nav lbox__nav--prev" aria-label="Предыдущее фото"><svg class="ic"><use href="#i-arrow-l"/></svg></button><button type="button" class="lbox__nav lbox__nav--next" aria-label="Следующее фото"><svg class="ic"><use href="#i-arrow"/></svg></button>' : "") +
+        '<img alt=""><span class="lbox__count" data-lb-count></span>';
+      document.body.appendChild(lb); document.body.classList.add("is-locked");
+      lbShow(lbI);
+      lb.addEventListener("click", function (e) {
+        if (e.target.closest(".lbox__nav--prev")) return lbShow(lbI - 1);
+        if (e.target.closest(".lbox__nav--next")) return lbShow(lbI + 1);
+        if (e.target.tagName !== "IMG" || lbList.length < 2) lbClose();
+      });
+      var x0 = null;
+      lb.addEventListener("touchstart", function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+      lb.addEventListener("touchend", function (e) { if (x0 === null) return; var dx = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(dx) > 40 && lbList.length > 1) lbShow(lbI + (dx < 0 ? 1 : -1)); }, { passive: true });
+      document.addEventListener("keydown", lbKey);
+    });
+  }
+
   /* ---------- покупка ---------- */
   var info = $("[data-info]");
   var fb = $("[data-fav]", info);

@@ -270,7 +270,11 @@
     if (P.year) rows.push(["Год коллекции", P.year]);
     }
     var mini = []; if (G) (P.specs || []).forEach(function (s) { if (String(s[1]).length <= 28) mini.push(s); });
-    if (!G) { if (size) mini.push(["Рулон", size]); if (P.rapport) mini.push(["Раппорт", String(P.rapport).replace(".", ",") + " см"]); if (P.coll) mini.push(["Коллекция", P.coll]); if (P.country) mini.push(["Страна", P.country]); if (P.colorLabel) mini.push(["Цвет", P.colorLabel]); mini.push(["Артикул", P.sku]);
+    if (!G) {
+      var lab = function (k, skipRoll) { return (P.attrs[k] || []).map(function (v) { var o = FAC.byKey[k] && FAC.byKey[k].byV[v]; return o ? o.label : ""; }).filter(function (t) { return t && !(skipRoll && /^Рулонные/.test(t)); }).join(", "); };
+      var cover = lab("pokrytie"), kindOf = lab("tip-oboev", true);
+      if (cover) mini.push(["Покрытие", cover]); else if (P.typeLabel && P.typeLabel !== "Обои") mini.push(["Вид обоев", P.typeLabel]);
+      if (kindOf) mini.push(["Тип обоев", kindOf]); if (size) mini.push(["Рулон", size]); if (P.rapport) mini.push(["Раппорт", String(P.rapport).replace(".", ",") + " см"]); if (P.colorLabel) mini.push(["Цвет", P.colorLabel]); if (P.country) mini.push(["Страна", P.country]); mini.push(["Артикул", P.sku]);
     }
     var unit = G ? "шт" : P.unit === "м²" ? "м²" : "рулон", hasPrice = !!P.price;
     var snap = JSON.stringify({ id: P.id, sku: P.sku, title: P.title, brand: P.brand, coll: P.coll, price: P.price, old: P.old, unit: P.unit, thumb: P.thumb, img: P.img, type: P.type, typeLabel: P.typeLabel, roll: P.roll, rapport: P.rapport, badges: P.badges });
@@ -285,7 +289,7 @@
       '<p class="pinfo__brand"><a href="' + brandUrl + '">' + esc(P.brand) + "</a>" + (P.collSlug && !G ? ' · <a href="/brand/' + P.brandSlug + "/" + P.collSlug + '">коллекция ' + esc(P.coll) + "</a>" : "") + "</p>" +
       (hasPrice ? '<div class="pinfo__price"><b>' + rub(P.price) + "</b>" + (P.old ? "<s>" + rub(P.old) + "</s>" : "") + "<small>/ " + unit + "</small></div>" : '<div class="pinfo__price"><b class="price-ask">Цена по запросу</b></div>') +
       (tones.length > 1 ? '<div class="pinfo__tones"><p class="pinfo__label">Другие цвета этого рисунка</p><div class="pinfo__tones-row">' + tones.map(function (q) { var u = D.img(q); return '<a class="tone-img' + (q.id === P.id ? " is-on" : "") + '" href="/product/' + q.id + '" title="' + esc(q.sku) + '">' + (u ? '<img src="' + esc(u) + '" alt="" loading="lazy">' : "") + "</a>"; }).join("") + "</div></div>" : "") +
-      '<div class="pinfo__specs">' + mini.slice(0, 4).map(function (s) { return "<div><span>" + esc(s[0]) + "</span><b>" + esc(s[1]) + "</b></div>"; }).join("") + "</div>" +
+      '<div class="pinfo__specs">' + mini.slice(0, mini.length >= 6 ? 6 : mini.length >= 4 ? 4 : 2).map(function (s) { return "<div><span>" + esc(s[0]) + "</span><b>" + esc(s[1]) + "</b></div>"; }).join("") + "</div>" +
       (hasPrice && roll ? '<details class="pcalc"><summary><svg class="ic"><use href="#i-ruler"/></svg>Сколько рулонов нужно?</summary><div class="mini-calc" data-mini><div class="mini-calc__row">' +
         '<div class="field"><input class="field__input" id="mL" type="number" step="0.1" min="1" value="4" placeholder=" " data-m="l"><label class="field__label" for="mL">Длина, м</label></div>' +
         '<div class="field"><input class="field__input" id="mW" type="number" step="0.1" min="1" value="3.5" placeholder=" " data-m="w"><label class="field__label" for="mW">Ширина, м</label></div>' +

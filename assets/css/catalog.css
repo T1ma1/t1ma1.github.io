@@ -323,3 +323,31 @@ img.mega__promo-art { width: 100%; height: 100%; object-fit: cover; }
 /* фон формы заявки — фото шоурума: затемняем сильнее, чтобы текст читался */
 .cta-final::before { background: linear-gradient(90deg, rgba(20, 16, 14, .92) 0%, rgba(20, 16, 14, .82) 50%, rgba(20, 16, 14, .66) 100%); }
 @media (max-width: 1080px) { .cta-final::before { background: linear-gradient(180deg, rgba(20, 16, 14, .84), rgba(20, 16, 14, .9)); } }
+
+/* ---------- правки 18.11 ---------- */
+/* просмотр фото товара на весь экран */
+.pgal__main { cursor: zoom-in; }
+.lbox { position: fixed; inset: 0; z-index: 500; background: rgba(20, 20, 20, .94); display: grid; place-items: center; padding: 56px 16px; animation: fadeIn .2s ease both; cursor: zoom-out; }
+.lbox img { max-width: min(100%, 1100px); max-height: 100%; object-fit: contain; border-radius: 10px; background: #f6f6f6; box-shadow: 0 20px 60px rgba(0, 0, 0, .5); }
+.lbox__x, .lbox__nav { position: absolute; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, .94); color: #1e1e1e; transition: background .2s, color .2s; }
+.lbox__x:hover, .lbox__nav:hover { background: #df372f; color: #fff; }
+.lbox__x { top: 14px; right: 14px; }
+.lbox__nav { top: 50%; transform: translateY(-50%); }
+.lbox__nav--prev { left: 14px; } .lbox__nav--next { right: 14px; }
+.lbox__x .ic, .lbox__nav .ic { width: 18px; height: 18px; }
+.lbox__count { position: absolute; left: 0; right: 0; bottom: 18px; text-align: center; color: rgba(255, 255, 255, .8); font-size: 14px; }
+/* слайдер первого экрана: кадры сменяются быстро, без долгого наложения двух картинок */
+.hero__slide { transform: none; transition: opacity .45s ease; }
+.hero__slide.is-on { transform: none; }
+/* надпись DECANDO в подвале помещается целиком на любом экране */
+.footer .container { container-type: inline-size; }
+.footer__word { font-size: 17vw; font-size: min(18.2cqw, 300px); letter-spacing: .04em; margin-left: 0; margin-right: 0; max-width: 100%; overflow: hidden; text-align: center; }
+/* значки разделов в меню — фото товаров */
+.mega__cat img { width: 56px; height: 44px; object-fit: cover; }
+/* фото шоурумов на странице контактов */
+.shops__photo--solo { display: block !important; min-height: 0; aspect-ratio: 16 / 7; margin-bottom: clamp(20px, 3vw, 36px); background: #f6f6f6; }
+@media (max-width: 1080px) { .shops__photo--solo { aspect-ratio: 3 / 2; border-radius: 22px; } }
+/* фон формы — обои Loymina */
+.cta-final__photo { object-position: 50% 30%; filter: none; }
+.cta-final::before { background: linear-gradient(90deg, rgba(20, 16, 14, .88) 0%, rgba(20, 16, 14, .76) 50%, rgba(20, 16, 14, .58) 100%); }
+@media (max-width: 1080px) { .cta-final::before { background: linear-gradient(180deg, rgba(20, 16, 14, .8), rgba(20, 16, 14, .88)); } }
