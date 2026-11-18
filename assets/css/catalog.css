@@ -383,3 +383,14 @@ body.tryon-soon .tsoon { display: grid; place-items: center; position: relative;
 .tsoon__lead { margin: 0; color: rgba(255, 255, 255, .82); font-size: 16px; line-height: 1.6; }
 .tsoon__card .hero__cta { justify-content: center; margin-top: 4px; }
 @media (max-width: 760px) { body.tryon-soon .tsoon { min-height: 0; padding: 14px; } .tsoon__card { padding: 22px 18px; } .tsoon__lead { font-size: 15px; } .tsoon__card .hero__cta { flex-direction: column; align-self: stretch; } .tsoon__card .hero__cta .btn { width: 100%; justify-content: center; } }
+
+/* ---------- правки 19.11 ---------- */
+.nobr { white-space: nowrap; }
+@media (max-width: 760px) { .cta-final .h2 { font-size: clamp(25px, 7.2vw, 34px); } }
+/* описание товара (текст для SEO) */
+.pdesc { padding: clamp(28px, 4vw, 48px) 0 clamp(8px, 2vw, 20px); }
+.pdesc .h3 { margin: 0 0 14px; }
+.pdesc .prose { max-width: 78ch; }
+.pdesc .prose p { margin: 0 0 12px; }
+/* просмотр фото: крупная версия не растягивается сверх своего размера */
+.lbox img { max-width: min(100%, 1000px); }

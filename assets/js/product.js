@@ -10,12 +10,22 @@
 
   /* ---------- галерея: миниатюры и лупа ---------- */
   var main = $("[data-gmain]"), mainImg = main && $("img", main);
+  /* обычное фото 600 px показывается сразу; затем, если есть крупная версия и браузер её открыл, меняем на неё */
+  function bigOf(src) { var m = /^(.*)\/assets\/img\/p\/([^\/]+)\.jpg$/.exec(src || ""); return m ? m[1] + "/assets/img/pl/" + m[2] + ".avif" : ""; }
+  function sharpen(img) {
+    var src = img.getAttribute("src"), b = bigOf(src); if (!b) return;
+    img.setAttribute("data-base", src);
+    var im = new Image();
+    im.onload = function () { if (img.getAttribute("data-base") === src && im.naturalWidth) img.src = b; };
+    im.src = b;
+  }
+  if (mainImg) { if (mainImg.complete) sharpen(mainImg); else mainImg.addEventListener("load", function f() { mainImg.removeEventListener("load", f); sharpen(mainImg); }); }
   $$("[data-gthumb]").forEach(function (b) {
     b.addEventListener("click", function () {
       $$("[data-gthumb]").forEach(function (x) { x.classList.toggle("is-on", x === b); x.setAttribute("aria-selected", x === b); });
       mainImg.classList.add("is-swap");
       var src = b.getAttribute("data-gthumb"), im = new Image();
-      im.onload = im.onerror = function () { mainImg.src = src; mainImg.classList.remove("is-swap"); };
+      im.onload = im.onerror = function () { mainImg.removeAttribute("data-base"); mainImg.src = src; mainImg.classList.remove("is-swap"); sharpen(mainImg); };
       im.src = src;
     });
   });
@@ -30,14 +40,15 @@
 
   /* ---------- просмотр фото: нажатие открывает снимок на весь экран (стрелки и свайп — если фото несколько) ---------- */
   if (main && mainImg) {
-    var lbSrcs = function () { var a = $$("[data-gthumb]").map ? $$("[data-gthumb]") : Array.prototype.slice.call($$("[data-gthumb]")); a = Array.prototype.map.call(a, function (b) { return b.getAttribute("data-gthumb"); }); return a.length ? a : [mainImg.getAttribute("src")]; };
+    var baseSrc = function () { return mainImg.getAttribute("data-base") || mainImg.getAttribute("src"); };
+    var lbSrcs = function () { var a = Array.prototype.map.call($$("[data-gthumb]"), function (b) { return b.getAttribute("data-gthumb"); }); return a.length ? a : [baseSrc()]; };
     var lb = null, lbI = 0, lbList = [];
-    var lbShow = function (i) { lbI = (i + lbList.length) % lbList.length; $("img", lb).src = lbList[lbI]; var c = $("[data-lb-count]", lb); if (c) c.textContent = lbList.length > 1 ? (lbI + 1) + " / " + lbList.length : ""; };
+    var lbShow = function (i) { lbI = (i + lbList.length) % lbList.length; var li = $("img", lb); li.removeAttribute("data-base"); li.src = lbList[lbI]; sharpen(li); var c = $("[data-lb-count]", lb); if (c) c.textContent = lbList.length > 1 ? (lbI + 1) + " / " + lbList.length : ""; };
     var lbClose = function () { if (!lb) return; lb.remove(); lb = null; document.body.classList.remove("is-locked"); document.removeEventListener("keydown", lbKey); };
     var lbKey = function (e) { if (e.key === "Escape") lbClose(); else if (e.key === "ArrowLeft") lbShow(lbI - 1); else if (e.key === "ArrowRight") lbShow(lbI + 1); };
     main.addEventListener("click", function () {
       if (!mainImg.getAttribute("src") || main.classList.contains("is-noimg")) return;
-      lbList = lbSrcs(); lbI = Math.max(0, lbList.indexOf(mainImg.getAttribute("src")));
+      lbList = lbSrcs(); lbI = Math.max(0, lbList.indexOf(baseSrc()));
       lb = document.createElement("div"); lb.className = "lbox"; lb.setAttribute("role", "dialog"); lb.setAttribute("aria-label", "Просмотр фото");
       lb.innerHTML = '<button type="button" class="lbox__x" aria-label="Закрыть"><svg class="ic"><use href="#i-close"/></svg></button>' +
         (lbList.length > 1 ? '<button type="button" class="lbox__nav lbox__nav--prev" aria-label="Предыдущее фото"><svg class="ic"><use href="#i-arrow-l"/></svg></button><button type="button" class="lbox__nav lbox__nav--next" aria-label="Следующее фото"><svg class="ic"><use href="#i-arrow"/></svg></button>' : "") +

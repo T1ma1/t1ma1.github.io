@@ -277,6 +277,25 @@
       if (kindOf) mini.push(["Тип обоев", kindOf]); if (size) mini.push(["Рулон", size]); if (P.rapport) mini.push(["Раппорт", String(P.rapport).replace(".", ",") + " см"]); if (P.colorLabel) mini.push(["Цвет", P.colorLabel]); if (P.country) mini.push(["Страна", P.country]); mini.push(["Артикул", P.sku]);
     }
     var unit = G ? "шт" : P.unit === "м²" ? "м²" : "рулон", hasPrice = !!P.price;
+    /* описание под карточкой — как $T['desc'] в lib/product-page.php */
+    var lcl = function (k, skipRoll) { return ((P.attrs && P.attrs[k]) || []).map(function (v) { var o = FAC.byKey[k] && FAC.byKey[k].byV[v]; return o ? o.label : ""; }).filter(function (t) { return t && !(skipRoll && /^Рулонные/.test(t)); }).join(", ").toLowerCase(); };
+    var cap = function (t) { return t.charAt(0).toUpperCase() + t.slice(1); }, s1 = [], s2 = [], cc, xx;
+    if (G) {
+      s1.push(title + (P.subLabel ? " — " + P.subLabel.toLowerCase() : "") + (P.brand ? ", производитель " + P.brand : "") + ".");
+      (P.specs || []).slice(0, 4).forEach(function (sp) { if (String(sp[1]).length <= 60) s1.push(sp[0] + " — " + String(sp[1]).toLowerCase() + "."); });
+    } else {
+      var vidL = lcl("vid-oboev"), what = !vidL ? "обои" : vidL.indexOf("обои") >= 0 ? vidL : vidL + " обои";
+      s1.push(title + ": " + what + " фабрики " + P.brand + (P.coll ? " из коллекции «" + P.coll + "»" : "") + (P.country ? ", страна производства — " + P.country : "") + ".");
+      cc = []; if ((xx = lcl("pokrytie"))) cc.push("покрытие — " + xx); if ((xx = lcl("tip-oboev", true))) cc.push("тип обоев — " + xx); if (cc.length) s1.push(cap(cc.join(", ")) + ".");
+      cc = []; if ((xx = lcl("tsvet"))) cc.push("цвет — " + xx); if ((xx = lcl("ton"))) cc.push("тон — " + xx); if (cc.length) s1.push(cap(cc.join("; ")) + ".");
+      cc = []; if ((xx = lcl("risunok"))) cc.push("рисунок — " + xx); if ((xx = lcl("stil"))) cc.push("стиль — " + xx); if (cc.length) s1.push(cap(cc.join("; ")) + ".");
+      if ((xx = lcl("pomeshhenie"))) s1.push("Подходят для помещений: " + xx + ".");
+      if (roll) s2.push("Размер рулона — " + size + (P.rapport ? ", раппорт — " + String(P.rapport).replace(".", ",") + " см" : "") + ".");
+      else if (P.type === "mural") s2.push("Изображение печатается под размер стены, цена указана за квадратный метр.");
+    }
+    s2.push(hasPrice ? "Цена — " + rub(P.price) + " за " + (unit === "шт" ? "штуку" : unit) + "." : "Цену и наличие уточняйте у менеджера.");
+    s2.push("Купить " + (P.brand + " " + P.sku).trim() + " можно с доставкой по России или в шоурумах Decando: Москва, Санкт-Петербург, Брянск, Калуга.");
+    var descHtml = '<section class="pdesc"><div class="container"><h2 class="h3">Описание</h2><div class="prose"><p>' + esc(s1.join(" ")) + "</p><p>" + esc(s2.join(" ")) + "</p></div></div></section>";
     var snap = JSON.stringify({ id: P.id, sku: P.sku, title: P.title, brand: P.brand, coll: P.coll, price: P.price, old: P.old, unit: P.unit, thumb: P.thumb, img: P.img, type: P.type, typeLabel: P.typeLabel, roll: P.roll, rapport: P.rapport, badges: P.badges });
     var badges = DC.badgeHtml(P);
     document.title = title + " — купить, " + (hasPrice ? rub(P.price) : "цена по запросу") + " | Decando";
@@ -301,7 +320,7 @@
       tryHtml + '<p class="pinfo__more"><button type="button" class="u-link" data-lead="oneclick" data-product="' + esc(P.id) + '">Купить в один клик</button><span>·</span><span>Доставка по России и самовывоз из 4 шоурумов</span></p></div></div>' +
       '<div class="ptabs"><div class="ptabs__nav" role="tablist"><button type="button" class="is-on" data-tab="specs" role="tab">Характеристики</button><button type="button" data-tab="ship" role="tab">Доставка</button></div>' +
       '<div class="ptabs__panel" data-tabpanel="specs"><table class="spec-table"><tbody>' + rows.map(function (r) { return "<tr><th>" + r[0] + "</th><td>" + r[1] + "</td></tr>"; }).join("") + "</tbody></table></div>" +
-      '<div class="ptabs__panel" data-tabpanel="ship" hidden><div class="prose"><p>Доставляем по всей России или забирайте в шоуруме: Москва, Санкт-Петербург, Брянск, Калуга. Срок и стоимость назовёт менеджер.</p><p><a href="/delivery">Доставка и оплата</a> · <a href="/return">Обмен и возврат</a></p></div></div></div></div>' + compHtml +
+      '<div class="ptabs__panel" data-tabpanel="ship" hidden><div class="prose"><p>Доставляем по всей России или забирайте в шоуруме: Москва, Санкт-Петербург, Брянск, Калуга. Срок и стоимость назовёт менеджер.</p><p><a href="/delivery">Доставка и оплата</a> · <a href="/return">Обмен и возврат</a></p></div></div></div></div>' + descHtml + compHtml +
       (related.length ? '<section class="section section--paper2"><div class="container"><div class="section-head"><div class="section-head__text"><h2 class="h2">Похожие товары</h2></div><div class="rail__nav" style="display:flex;gap:8px"><button type="button" class="rail__btn" data-rail-prev aria-label="Назад"><svg class="ic"><use href="#i-arrow-l"/></svg></button><button type="button" class="rail__btn" data-rail-next aria-label="Вперёд"><svg class="ic"><use href="#i-arrow"/></svg></button></div></div><div class="rail" data-rail><div class="rail__track" data-related></div></div></div></section>' : "");
     var compBox = $("[data-comp]", root);
     comp.forEach(function (q) { D.byId[q.id] = D.byId[q.id] || q; if (compBox) compBox.appendChild(DC.card(q)); });
