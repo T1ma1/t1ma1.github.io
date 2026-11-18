@@ -232,7 +232,7 @@
 
   /* примерочная на главной: образцы популярных обоев — нажатие открывает примерку с ними */
   (function () {
-    var box = document.querySelector("[data-tryon-sw]"); if (!box || !window.DC_DATA) return;
+    var box = document.querySelector("[data-tryon-sw]"); if (!box || !window.DC_DATA || (window.DC_CONFIG || {}).tryon === "soon") return;
     var D = window.DC_DATA, seen = {};
     var all = D.products.filter(function (p) { return p.photo && p.type !== "mural"; });
     var pick = all.filter(function (p) { if (seen[p.coll + p.brand]) return false; seen[p.coll + p.brand] = 1; return true; });

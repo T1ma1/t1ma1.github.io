@@ -351,3 +351,35 @@ img.mega__promo-art { width: 100%; height: 100%; object-fit: cover; }
 .cta-final__photo { object-position: 50% 30%; filter: none; }
 .cta-final::before { background: linear-gradient(90deg, rgba(20, 16, 14, .88) 0%, rgba(20, 16, 14, .76) 50%, rgba(20, 16, 14, .58) 100%); }
 @media (max-width: 1080px) { .cta-final::before { background: linear-gradient(180deg, rgba(20, 16, 14, .8), rgba(20, 16, 14, .88)); } }
+
+/* ---------- примерочная временно закрыта (config.js → tryon: "soon") ---------- */
+.tryon-soon-only, .tsoon { display: none; }
+body.tryon-soon .tryon-live { display: none !important; }
+body.tryon-soon p.tryon-soon-only { display: block; }
+body.tryon-soon .hero__cta.tryon-soon-only { display: flex; }
+/* меню: пометка «скоро» */
+body.tryon-soon .nav__link--try::after, body.tryon-soon .mnav__nav a[href$="/primerka"]::after {
+  content: "скоро"; margin-left: 7px; padding: 2px 7px 3px; border-radius: 999px; background: #f0f0f0; color: #8a8a8a;
+  font: 600 10px/1 var(--sans); letter-spacing: .06em; text-transform: uppercase; vertical-align: middle; position: static; width: auto; height: auto; transform: none; opacity: 1;
+}
+body.tryon-soon .nav__link--try { color: #8a8a8a; }
+/* карточка товара: кнопки примерки нет */
+body.tryon-soon .ptry { display: none !important; }
+/* главная: блок в чёрно-белом, с табличкой */
+body.tryon-soon .tryon__img { position: relative; pointer-events: none; }
+body.tryon-soon .tryon__img img { filter: grayscale(1) contrast(.92) brightness(.82); }
+body.tryon-soon .tryon__soon { display: inline-flex; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 2; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 999px;
+  background: rgba(255, 255, 255, .94); color: #1e1e1e; font: 600 13px/1 var(--sans); letter-spacing: .1em; text-transform: uppercase; box-shadow: 0 12px 34px rgba(0, 0, 0, .28); white-space: nowrap; }
+body.tryon-soon .tryon__soon::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #df372f; }
+/* страница примерочной: комната в чёрно-белом, поверх — карточка */
+body.tryon-soon.page-studio .studio__grid, body.tryon-soon.page-studio .studio__intro, body.tryon-soon.page-studio main > section:not([data-studio]) { display: none !important; }
+body.tryon-soon .tsoon { display: grid; place-items: center; position: relative; overflow: hidden; border-radius: var(--r-lg, 20px); min-height: clamp(460px, 64vh, 640px); padding: clamp(20px, 4vw, 48px); border: 1px solid rgba(255, 255, 255, .1); isolation: isolate; }
+.tsoon__bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; filter: grayscale(1) contrast(.95); }
+.tsoon::before { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(ellipse at center, rgba(20, 20, 20, .5) 0%, rgba(20, 20, 20, .78) 100%); }
+.tsoon__card { max-width: 560px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: clamp(24px, 4vw, 40px); border-radius: 22px; background: rgba(24, 24, 24, .66); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, .14); color: #fff; }
+.tsoon__card .h2 { margin: 0; color: #fff; }
+.tsoon__tag { margin: 0; display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 999px; background: rgba(255, 255, 255, .12); font: 600 11px/1 var(--sans); letter-spacing: .16em; text-transform: uppercase; }
+.tsoon__tag::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #df372f; }
+.tsoon__lead { margin: 0; color: rgba(255, 255, 255, .82); font-size: 16px; line-height: 1.6; }
+.tsoon__card .hero__cta { justify-content: center; margin-top: 4px; }
+@media (max-width: 760px) { body.tryon-soon .tsoon { min-height: 0; padding: 14px; } .tsoon__card { padding: 22px 18px; } .tsoon__lead { font-size: 15px; } .tsoon__card .hero__cta { flex-direction: column; align-self: stretch; } .tsoon__card .hero__cta .btn { width: 100%; justify-content: center; } }

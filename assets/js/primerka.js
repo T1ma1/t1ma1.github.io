@@ -7,6 +7,7 @@
   "use strict";
   var DC = window.DC, D = window.DC_DATA, $ = DC.$, $$ = DC.$$, esc = DC.esc;
   var root = $("[data-studio]"); if (!root) return;
+  if ((window.DC_CONFIG || {}).tryon === "soon") return;   /* примерочная временно закрыта: ничего не грузим */
   var ROOMS = DC_STUDIO.ROOMS, LIGHT = DC_STUDIO.LIGHT;
   var WALL_NAMES = ["Задняя", "Левая", "Правая"], WALL_FULL = ["задняя стена", "левая стена", "правая стена"];
 

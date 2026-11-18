@@ -42,7 +42,7 @@
 </script>
 
 </head>
-<body class="page-home" data-page="index">
+<body class="page-home tryon-soon" data-page="index">
 <a class="skip" href="#main">Перейти к содержимому</a>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <symbol id="logo-mark" viewBox="0 0 40 52"><path d="M5 50V21a15 15 0 0 1 30 0v29H5Z" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M14.5 23.5v19.5M13 23.5h6c6.8 0 10 4.2 10 9.75S25.8 43 19 43h-6" fill="none" stroke="currentColor" stroke-width="2.2"/></symbol>
@@ -287,14 +287,19 @@
       <div class="tryon__text">
         <p class="eyebrow eyebrow--light">02 — Примерочная</p>
         <h2 class="h2">Примерьте обои <em>на стене</em></h2>
-        <p class="tryon__lead">Любые обои из каталога с фотографией — на стенах гостиной, спальни, кухни или детской. Меняйте свет, сравнивайте «до и после», оклеивайте одну стену рисунком, а остальные — однотонным компаньоном.</p>
-        <div class="tryon__sw" data-tryon-sw></div>
-        <div class="hero__cta">
+        <p class="tryon__lead tryon-soon-only">Скоро здесь можно будет увидеть обои из каталога на стенах гостиной, спальни, кухни или детской. Пока примерочная закрыта — поможем с выбором лично.</p>
+        <p class="tryon__lead tryon-live">Любые обои из каталога с фотографией — на стенах гостиной, спальни, кухни или детской. Меняйте свет, сравнивайте «до и после», оклеивайте одну стену рисунком, а остальные — однотонным компаньоном.</p>
+        <div class="tryon__sw tryon-live" data-tryon-sw></div>
+        <div class="hero__cta tryon-live">
           <a class="btn btn--primary" href="/primerka">Открыть примерочную<svg class="ic"><use href="#i-arrow"/></svg></a>
           <a class="btn btn--ghost-light" href="/product-category/oboi">Выбрать в каталоге</a>
         </div>
+        <div class="hero__cta tryon-soon-only">
+          <button type="button" class="btn btn--primary" data-lead="podbor">Подобрать с менеджером<svg class="ic"><use href="#i-arrow"/></svg></button>
+          <a class="btn btn--ghost-light" href="/product-category/oboi">Выбрать в каталоге</a>
+        </div>
       </div>
-      <a class="tryon__img" href="/primerka" aria-label="Открыть примерочную"><img src="/assets/img/rooms/room-living.jpg" alt="Гостиная в примерочной обоев" loading="lazy"></a>
+      <a class="tryon__img" href="/primerka" aria-label="Примерочная"><span class="tryon__soon tryon-soon-only">Скоро откроется</span><img src="/assets/img/rooms/room-living.jpg" alt="Гостиная в примерочной обоев" loading="lazy"></a>
     </div>
   </div>
 </section>

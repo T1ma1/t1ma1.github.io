@@ -103,7 +103,7 @@
       $("[data-fav-actions]").hidden = !ids.length;
       if (!ids.length) {
         grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><span class="empty__art" data-pattern="ginkgo-gold" data-pattern-cm="40"></span><h2 class="h2">Здесь будут <em>любимые</em> обои</h2>' +
-          '<p class="muted">Нажимайте на сердечко в каталоге — сравните варианты и примерьте их на стенах.</p><a class="btn btn--primary" href="/product-category/oboi">В каталог<svg class="ic"><use href="#i-arrow"/></svg></a></div>';
+          '<p class="muted">Нажимайте на сердечко в каталоге — сравните варианты и отправьте подборку менеджеру.</p><a class="btn btn--primary" href="/product-category/oboi">В каталог<svg class="ic"><use href="#i-arrow"/></svg></a></div>';
         DC.paintPatterns(grid);
         return;
       }

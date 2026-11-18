@@ -23,7 +23,7 @@
 ["pageswap", "pagereveal"].forEach(function (t) { addEventListener(t, function (e) { var v = e.viewTransition; if (v) { v.ready.catch(function () {}); v.finished.catch(function () {}); v.updateCallbackDone && v.updateCallbackDone.catch(function () {}); } }); });</script>
 
 </head>
-<body class="page-studio" data-page="primerka">
+<body class="page-studio tryon-soon" data-page="primerka">
 <a class="skip" href="#main">Перейти к содержимому</a>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <symbol id="logo-mark" viewBox="0 0 40 52"><path d="M5 50V21a15 15 0 0 1 30 0v29H5Z" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M14.5 23.5v19.5M13 23.5h6c6.8 0 10 4.2 10 9.75S25.8 43 19 43h-6" fill="none" stroke="currentColor" stroke-width="2.2"/></symbol>
@@ -196,6 +196,18 @@
       <div class="studio__title-row">
         <h1 class="h1">Примерочная <em>обоев</em></h1>
         <p class="studio__intro">Выберите комнату и свет, нажмите на рисунок — обои лягут на стены в реальном масштабе. Каждую стену можно оклеить отдельно, а диван, ковёр и потолок — перекрасить.</p>
+      </div>
+    </div>
+    <div class="tsoon" data-tryon-soon>
+      <img class="tsoon__bg" src="/assets/img/rooms/room-living.jpg" alt="" aria-hidden="true">
+      <div class="tsoon__card">
+        <p class="tsoon__tag">Скоро</p>
+        <h2 class="h2">Примерочная <em>скоро откроется</em></h2>
+        <p class="tsoon__lead">Дорабатываем примерку, чтобы рисунок на стене совпадал с настоящим рулоном. А пока поможем выбрать лично: пришлите фото комнаты — подберём обои и компаньоны к ним.</p>
+        <div class="hero__cta">
+          <button type="button" class="btn btn--primary" data-lead="podbor">Подобрать с менеджером<svg class="ic"><use href="#i-arrow"/></svg></button>
+          <a class="btn btn--ghost-light" href="/product-category/oboi">Смотреть каталог</a>
+        </div>
       </div>
     </div>
     <div class="studio__grid">
