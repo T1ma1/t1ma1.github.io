@@ -89,13 +89,20 @@
   /* «2 рулона», «3 шт», «12 м²» */
   function qtyLabel(p, n) { return p.unit === "м²" ? "м²" : p.unit === "шт" ? "шт" : plural(n, "рулон", "рулона", "рулонов"); }
   /* карточка — та же разметка, что dc_card() в lib/seo.php: фото, артикул, название, цена, корзина */
+  /* фото карточки: у своих фото (assets/img/p/<id>.jpg) есть крупная версия assets/img/pl/<id>.avif — чёткая на экранах Retina
+     и при этом легче JPEG; браузер без AVIF или отсутствие файла — показывается обычное фото (см. обработчик ошибок ниже) */
+  function picHtml(u) {
+    var img = '<img class="pcard__img" src="' + esc(u) + '" alt="" loading="lazy" decoding="async">';
+    var m = /^(.*)\/assets\/img\/p\/([^\/]+)\.jpg$/.exec(u);
+    return m ? '<picture><source type="image/avif" srcset="' + esc(m[1] + "/assets/img/pl/" + m[2] + ".avif") + '">' + img + "</picture>" : img;
+  }
   function card(p, opt) {
     opt = opt || {};
     var el = document.createElement("article"), u = D.img(p), url = "/product/" + encodeURIComponent(p.id), on = fav.has(p.id);
     el.className = "pcard" + (opt.reveal ? " reveal" : "");
     el.setAttribute("data-id", p.id);
     el.innerHTML =
-      '<a class="pcard__media" href="' + url + '" tabindex="-1" aria-hidden="true" data-ph="' + esc(p.brand + " · " + p.sku) + '">' + (u ? '<img class="pcard__img" src="' + esc(u) + '" alt="" loading="lazy" decoding="async">' : '<span class="pcard__noimg">Decando</span>') + '<span class="pcard__badges">' + badgeHtml(p) + "</span></a>" +
+      '<a class="pcard__media" href="' + url + '" tabindex="-1" aria-hidden="true" data-ph="' + esc(p.brand + " · " + p.sku) + '">' + (u ? picHtml(u) : '<span class="pcard__noimg">Decando</span>') + '<span class="pcard__badges">' + badgeHtml(p) + "</span></a>" +
       '<button type="button" class="pcard__fav' + (on ? " is-on" : "") + '" data-fav="' + esc(p.id) + '" aria-label="В избранное" aria-pressed="' + on + '"><svg class="ic"><use href="#' + (on ? "i-heart-fill" : "i-heart") + '"/></svg></button>' +
       '<div class="pcard__body"><p class="pcard__sku">Арт.: ' + esc(p.sku) + "</p>" +
       '<h3 class="pcard__title"><a href="' + url + '">' + esc(p.title) + "</a></h3>" +
@@ -621,13 +628,16 @@
   /* ---------- фото не загрузилось — аккуратная заглушка «бренд · артикул» вместо битой картинки ---------- */
   var IMG_SEL = ".pcard__img, .pgal__main img, .sres__sw img, .tone-img img, .pgal__thumb img";
   function imgFail(img) {
-    var box = img.parentNode; if (box) box.classList.add("is-noimg"); img.style.display = "none";
+    var box = img.parentNode; if (box && box.tagName === "PICTURE") box = box.parentNode;
+    if (box) box.classList.add("is-noimg"); img.style.display = "none";
     /* миниатюра без фото в галерее товара — убираем; если осталась одна, прячем ленту */
     var th = img.closest && img.closest(".pgal__thumb");
     if (th) { var list = th.parentNode; th.parentNode.removeChild(th); if (list && list.children.length < 2) list.style.display = "none"; }
   }
-  document.addEventListener("error", function (e) { var t = e.target; if (t && t.tagName === "IMG" && t.matches(IMG_SEL)) imgFail(t); }, true);
-  $$(IMG_SEL).forEach(function (img) { if (img.complete && !img.naturalWidth && img.getAttribute("src")) imgFail(img); });
+  /* крупная версия не открылась — убираем её, браузер берёт обычное фото из src */
+  function dropBig(img) { var pc = img.parentNode, s = pc && pc.tagName === "PICTURE" && pc.querySelector("source"); if (!s) return false; pc.removeChild(s); return true; }
+  document.addEventListener("error", function (e) { var t = e.target; if (t && t.tagName === "IMG" && t.matches(IMG_SEL)) { if (dropBig(t)) return; imgFail(t); } }, true);
+  $$(IMG_SEL).forEach(function (img) { if (img.complete && !img.naturalWidth && img.getAttribute("src") && !dropBig(img)) imgFail(img); });
 
   /* ---------- старт ---------- */
   updateCounts();

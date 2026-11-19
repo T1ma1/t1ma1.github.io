@@ -394,7 +394,7 @@
   function afterRender(scripts) {
     scripts.forEach(function (src) { var s = document.createElement("script"); s.src = src; document.body.appendChild(s); });
     DC.reveal(root);
-    $$("img", root).forEach(function (img) { if (img.complete && !img.naturalWidth && img.getAttribute("src")) img.dispatchEvent(new Event("error")); });
+    $$("img", root).forEach(function (img) { if (img.complete && !img.naturalWidth && img.getAttribute("src") && img.loading !== "lazy") img.dispatchEvent(new Event("error")); });
     window.scrollTo(0, 0);
   }
 })();

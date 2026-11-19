@@ -394,3 +394,6 @@ body.tryon-soon .tsoon { display: grid; place-items: center; position: relative;
 .pdesc .prose p { margin: 0 0 12px; }
 /* просмотр фото: крупная версия не растягивается сверх своего размера */
 .lbox img { max-width: min(100%, 1000px); }
+
+/* ---------- крупные фото в карточках списков ---------- */
+.pcard__media picture { display: contents; }
