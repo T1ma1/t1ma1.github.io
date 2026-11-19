@@ -397,3 +397,20 @@ body.tryon-soon .tsoon { display: grid; place-items: center; position: relative;
 
 /* ---------- крупные фото в карточках списков ---------- */
 .pcard__media picture { display: contents; }
+
+/* ---------- правка 19.11: фото шоурумов на телефоне пропадало ---------- */
+/* Высота кадра задаётся отступом (::before), а не aspect-ratio: в части мобильных браузеров блок, внутри которого
+   только абсолютно расположенные фото, с aspect-ratio получал нулевую высоту — и галерея исчезала. */
+@media (max-width: 1080px) {
+  .shops__photo { aspect-ratio: auto; min-height: 0; height: auto; align-self: start; width: 100%; }
+  .shops__photo::before { content: ""; display: block; padding-top: 66.667%; }
+}
+.shops__photo--solo { aspect-ratio: auto; width: 100%; }
+.shops__photo--solo::before { content: ""; display: block; padding-top: 43.75%; }
+@media (max-width: 1080px) { .shops__photo--solo::before { padding-top: 66.667%; } }
+/* телефон: кадр как на старом сайте — высокий, почти квадратный (просьба клиента 19.11), фото заполняет его целиком */
+@media (max-width: 760px) {
+  .shops__photo::before, .shops__photo--solo::before { padding-top: 110%; }
+  .shops__photo img.is-tall { object-fit: cover; }
+  .shops__photo { background: none; }
+}
