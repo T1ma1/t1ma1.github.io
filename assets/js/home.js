@@ -123,10 +123,19 @@
       b.addEventListener("click", function () { go(i); });
       dots.appendChild(b);
     });
+    /* телефон: рамка повторяет пропорции текущего фото — кадр виден целиком, без обрезки и полей.
+       Там же фото не листаются сами: высота рамки у вертикальных и горизонтальных кадров разная,
+       и самопроизвольная смена сдвигала бы адрес и карту под пальцем. */
+    var phone = window.matchMedia("(max-width: 760px)");
+    function fit() {
+      var im = imgs[cur], w = +im.getAttribute("width") || im.naturalWidth, h = +im.getAttribute("height") || im.naturalHeight;
+      if (w && h) g.style.setProperty("--shop-h", (h / w * 100).toFixed(3) + "%");
+    }
     function go(i) {
       imgs[cur].classList.toggle("is-on", false); cur = (i + imgs.length) % imgs.length; imgs[cur].classList.toggle("is-on", true);
       $$("button", dots).forEach(function (b, k) { b.classList.toggle("is-on", k === cur); });
-      clearTimeout(timer); if (!reduce) timer = setTimeout(function () { go(document.hidden ? cur : cur + 1); }, 4200);
+      fit();
+      clearTimeout(timer); if (!reduce && !phone.matches) timer = setTimeout(function () { go(document.hidden ? cur : cur + 1); }, 4200);
     }
     go(0);
     imgs.forEach(function (im) { var f = function () { if (im.naturalHeight > im.naturalWidth) im.classList.add("is-tall"); }; if (im.complete && im.naturalWidth) f(); else im.addEventListener("load", f); });

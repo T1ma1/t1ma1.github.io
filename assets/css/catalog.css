@@ -408,9 +408,16 @@ body.tryon-soon .tsoon { display: grid; place-items: center; position: relative;
 .shops__photo--solo { aspect-ratio: auto; width: 100%; }
 .shops__photo--solo::before { content: ""; display: block; padding-top: 43.75%; }
 @media (max-width: 1080px) { .shops__photo--solo::before { padding-top: 66.667%; } }
-/* телефон: кадр как на старом сайте — высокий, почти квадратный (просьба клиента 19.11), фото заполняет его целиком */
+/* телефон: фото целиком в рамке со скруглёнными углами (просьба клиента 19.11) — высота рамки берётся из пропорций
+   текущего кадра (--shop-h ставит home.js), поэтому ничего не обрезается и по бокам нет полей */
 @media (max-width: 760px) {
-  .shops__photo::before, .shops__photo--solo::before { padding-top: 110%; }
+  .shops__photo::before, .shops__photo--solo::before { padding-top: var(--shop-h, 66.667%); transition: padding-top .45s var(--ease); }
   .shops__photo img.is-tall { object-fit: cover; }
   .shops__photo { background: none; }
 }
+@media (max-width: 760px) and (prefers-reduced-motion: reduce) { .shops__photo::before { transition: none; } }
+
+/* ---------- экран «Спасибо» на тёмной форме: текст и предупреждение были тёмными на тёмном ---------- */
+.on-dark .lead__done .muted { color: rgba(255, 255, 255, .82); }
+.on-dark .lead__done .h3 { color: #fff; }
+.on-dark .note--warn { background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .22); color: #fff; }

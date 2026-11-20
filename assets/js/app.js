@@ -263,7 +263,9 @@
   function doneHtml(res, title, text) {
     return '<div class="lead__done"><span class="lead__done-ic"><svg class="ic"><use href="#i-check"/></svg></span>' +
       '<h3 class="h3">' + esc(title) + "</h3><p class=\"muted\">" + esc(text) + "</p>" +
-      (res.ok ? "" : '<div class="note note--warn">Не удалось связаться с сервером — заявка сохранена в браузере. Чтобы мы получили её прямо сейчас, отправьте её в WhatsApp одним нажатием.</div>' +
+      (res.ok ? "" : '<div class="note note--warn">' + (window.DC_DEMO
+        ? "Это демо-версия сайта: приём заявок заработает после переноса на хостинг. Сейчас заявку можно отправить в WhatsApp одним нажатием."
+        : "Не удалось связаться с сервером — заявка сохранена в браузере. Чтобы мы получили её прямо сейчас, отправьте её в WhatsApp одним нажатием.") + "</div>" +
         '<a class="btn btn--primary" href="' + res.wa + '" target="_blank" rel="noopener"><svg class="ic"><use href="#i-wa"/></svg>Отправить в WhatsApp</a>') +
       "</div>";
   }
