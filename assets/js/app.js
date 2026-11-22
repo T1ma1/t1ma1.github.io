@@ -94,7 +94,7 @@
   function picHtml(u) {
     var img = '<img class="pcard__img" src="' + esc(u) + '" alt="" loading="lazy" decoding="async">';
     var m = /^(.*)\/assets\/img\/p\/([^\/]+)\.jpg$/.exec(u);
-    return m ? '<picture><source type="image/avif" srcset="' + esc(m[1] + "/assets/img/pl/" + m[2] + ".avif") + '">' + img + "</picture>" : img;
+    return false && m ? '<picture><source type="image/avif" srcset="' + esc(m[1] + "/assets/img/pl/" + m[2] + ".avif") + '">' + img + "</picture>" : img;
   }
   function card(p, opt) {
     opt = opt || {};
