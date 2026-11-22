@@ -421,3 +421,25 @@ body.tryon-soon .tsoon { display: grid; place-items: center; position: relative;
 .on-dark .lead__done .muted { color: rgba(255, 255, 255, .82); }
 .on-dark .lead__done .h3 { color: #fff; }
 .on-dark .note--warn { background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .22); color: #fff; }
+
+/* ---------- аудит 22.11 ---------- */
+/* Контакты, компьютер: фото шоурумов — лента целых кадров одной высоты. Раньше один кадр тянулся на всю ширину (1240 px
+   при фото 1200 px) и обрезался аркой: вывеска срезана, вертикальные фото — полоска из середины. */
+.shops__track { display: contents; }
+@media (min-width: 1081px) {
+  .shops__photo--solo { aspect-ratio: auto; border-radius: 0; background: none; overflow: visible; cursor: default; }
+  .shops__photo--solo::before { content: none; }
+  .shops__photo--solo .shops__track { display: flex; gap: 14px; height: clamp(340px, 30vw, 440px); overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-width: none; border-radius: 22px; cursor: grab; }
+  .shops__photo--solo .shops__track::-webkit-scrollbar { display: none; }
+  .shops__photo--solo .shops__track img, .shops__photo--solo .shops__track img.is-on, .shops__photo--solo .shops__track img.is-tall { position: static; flex: none; width: auto; height: 100%; opacity: 1; object-fit: cover; border-radius: 22px; scroll-snap-align: start; -webkit-user-drag: none; user-select: none; }
+  .shops__photo--solo .shops__dots { display: none; }
+  .shops__photo--solo .shops__nav--prev { left: -18px; }
+  .shops__photo--solo .shops__nav--next { right: -18px; }
+}
+/* Краска и лепнина: предметное фото на белом — показываем целиком, а не обрезаем по краям рамки */
+.pgal--goods .pgal__main { background: #fff; border: 1px solid var(--line); }
+.pgal--goods .pgal__main img { object-fit: contain; padding: 5%; }
+.pgal--goods .pgal__thumb img { object-fit: contain; background: #fff; }
+/* у большинства красок и лепнины оригинал на decando.ru всего ~500 px: не растягиваем его на всю рамку, показываем в своём размере по центру */
+.pgal--goods .pgal__main { display: grid; place-items: center; }
+.pgal--goods .pgal__main img { width: auto; height: auto; max-width: 100%; max-height: 100%; }
