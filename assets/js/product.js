@@ -11,7 +11,7 @@
   /* ---------- галерея: миниатюры и лупа ---------- */
   var main = $("[data-gmain]"), mainImg = main && $("img", main);
   /* обычное фото 600 px показывается сразу; затем, если есть крупная версия и браузер её открыл, меняем на неё */
-  function bigOf(src) { return ""; var m = /^(.*)\/assets\/img\/p\/([^\/]+)\.jpg$/.exec(src || ""); return m ? m[1] + "/assets/img/pl/" + m[2] + ".avif" : ""; }
+  function bigOf(src) { var m = /^(.*)\/assets\/img\/p\/([^\/]+)\.jpg$/.exec(src || ""); return m ? m[1] + "/assets/img/pl/" + m[2] + ".avif" : ""; }
   function sharpen(img) {
     var src = img.getAttribute("src"), b = bigOf(src); if (!b) return;
     img.setAttribute("data-base", src);
