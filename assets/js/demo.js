@@ -303,7 +303,7 @@ window.DC_DEMO = true;   // демо без сервера: см. экран п�
     root.innerHTML =
       '<section class="page-head" style="padding-bottom:20px"><div class="container"><nav class="crumbs" aria-label="Навигация">' + crumbs(cr) + "</nav></div></section>" +
       '<div class="container"><div class="product" data-product data-pid="' + esc(P.id) + '" data-p="' + esc(snap) + '" data-ssr>' +
-      '<div class="pgal">' + (gallery.length > 1 ? '<div class="pgal__thumbs" role="tablist">' + gallery.map(function (g, i) { return '<button type="button" class="pgal__thumb' + (i ? "" : " is-on") + '" data-gthumb="' + esc(g) + '" role="tab"><img src="' + esc(g) + '" alt="" loading="lazy"></button>'; }).join("") + "</div>" : "") +
+      '<div class="pgal' + (P.kind ? " pgal--goods" : "") + '">' + (gallery.length > 1 ? '<div class="pgal__thumbs" role="tablist">' + gallery.map(function (g, i) { return '<button type="button" class="pgal__thumb' + (i ? "" : " is-on") + '" data-gthumb="' + esc(g) + '" role="tab"><img src="' + esc(g) + '" alt="" loading="lazy"></button>'; }).join("") + "</div>" : "") +
       '<div class="pgal__main" data-gmain data-ph="' + esc(P.brand + " · " + P.sku) + '">' + (gallery.length ? '<img src="' + esc(gallery[0]) + '" alt="' + esc(title) + '">' : "") + '<span class="pgal__badges">' + badges + "</span></div></div>" +
       '<div class="pinfo" data-info data-ssr><p class="pinfo__sku">Арт.: ' + esc(P.sku) + '</p><h1 class="pinfo__title">' + esc(title) + "</h1>" +
       '<p class="pinfo__brand"><a href="' + brandUrl + '">' + esc(P.brand) + "</a>" + (P.collSlug && !G ? ' · <a href="/brand/' + P.brandSlug + "/" + P.collSlug + '">коллекция ' + esc(P.coll) + "</a>" : "") + "</p>" +

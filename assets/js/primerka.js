@@ -175,12 +175,12 @@
       html = '<span class="studio__now-sw studio__now-sw--mix"></span><div class="studio__now-t"><small>' + where + '</small><b>Разные покрытия</b><span>Выберите стену, чтобы увидеть её обои</span></div>';
     } else if (spec && spec.wp) {
       var p = WP(spec.wp), r = rollsFor(p, ui.room, t);
-      html = '<a class="studio__now-sw" href="/product/' + p.id + '" data-now-sw aria-label="' + esc(p.title) + '"></a><div class="studio__now-t"><small>' + where + (p.typeLabel ? " · " + esc(p.typeLabel) : "") + '</small><b>' + esc(p.title) + "</b>" +
+      html = '<a class="studio__now-sw" href="/product/' + esc(p.id) + '" data-now-sw aria-label="' + esc(p.title) + '"></a><div class="studio__now-t"><small>' + where + (p.typeLabel ? " · " + esc(p.typeLabel) : "") + '</small><b>' + esc(p.title) + "</b>" +
         "<span>" + (p.price ? DC.rub(p.price) + " " + DC.unitLabel(p) : "Цена по запросу") + " · ≈ " + r.n + " " + r.unit + " на " + (t.length > 1 ? "эти стены" : "эту стену") + "</span>" +
-        '<div class="studio__now-act">' + (p.price ? '<button type="button" class="btn btn--light btn--sm" data-add="' + p.id + '" data-qty="' + r.n + '"><svg class="ic"><use href="#i-bag"/></svg>В корзину</button>'
-          : '<button type="button" class="btn btn--light btn--sm" data-lead="oneclick" data-product="' + p.id + '"><svg class="ic"><use href="#i-phone"/></svg>Узнать цену</button>') +
-        '<a class="btn btn--ghost-light btn--sm" href="/product/' + p.id + '">Характеристики</a>' +
-        '<button type="button" class="studio__icon' + (DC.fav.has(p.id) ? " is-on" : "") + '" data-fav="' + p.id + '" aria-label="В избранное"><svg class="ic"><use href="#' + (DC.fav.has(p.id) ? "i-heart-fill" : "i-heart") + '"/></svg></button>' +
+        '<div class="studio__now-act">' + (p.price ? '<button type="button" class="btn btn--light btn--sm" data-add="' + esc(p.id) + '" data-qty="' + r.n + '"><svg class="ic"><use href="#i-bag"/></svg>В корзину</button>'
+          : '<button type="button" class="btn btn--light btn--sm" data-lead="oneclick" data-product="' + esc(p.id) + '"><svg class="ic"><use href="#i-phone"/></svg>Узнать цену</button>') +
+        '<a class="btn btn--ghost-light btn--sm" href="/product/' + esc(p.id) + '">Характеристики</a>' +
+        '<button type="button" class="studio__icon' + (DC.fav.has(p.id) ? " is-on" : "") + '" data-fav="' + esc(p.id) + '" aria-label="В избранное"><svg class="ic"><use href="#' + (DC.fav.has(p.id) ? "i-heart-fill" : "i-heart") + '"/></svg></button>' +
         '<button type="button" class="studio__icon" data-clear aria-label="Снять покрытие" title="Вернуть исходную стену"><svg class="ic"><use href="#i-close"/></svg></button></div></div>';
     } else if (spec && spec.paint) {
       html = '<span class="studio__now-sw" style="background:' + spec.paint + '"></span><div class="studio__now-t"><small>' + where + " · краска</small><b>" + esc(paintName[spec.paint] || spec.paint) + "</b><span>Подберём и заколеруем в шоуруме</span>" +

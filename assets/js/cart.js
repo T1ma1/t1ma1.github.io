@@ -25,13 +25,13 @@
       root.innerHTML =
         '<div class="cart"><div><div class="cart__list">' + items.map(function (it) {
           var p = D.byId[it.id], u = p.unit === "м²";
-          return '<div class="citem"><a class="citem__sw" href="/product/' + p.id + '" data-sw="' + p.id + '" aria-label="' + esc(p.title) + '"></a><div>' +
-            '<p class="pcard__brand">' + esc(D.F.type[p.type]) + '</p><a class="citem__t" href="/product/' + p.id + '">' + esc(p.title) + "</a>" +
+          return '<div class="citem"><a class="citem__sw" href="/product/' + esc(p.id) + '" data-sw="' + esc(p.id) + '" aria-label="' + esc(p.title) + '"></a><div>' +
+            '<p class="pcard__brand">' + esc(D.F.type[p.type]) + '</p><a class="citem__t" href="/product/' + esc(p.id) + '">' + esc(p.title) + "</a>" +
             '<p class="citem__s">' + (D.sizeLabel(p) ? esc(D.sizeLabel(p)) + " · " : "") + DC.rub(p.price) + " " + DC.unitLabel(p) + "</p>" +
-            '<div class="citem__ctrl"><div class="stepper"><button type="button" data-dq="-1" data-id="' + p.id + '" aria-label="Меньше"><svg class="ic"><use href="#i-minus"/></svg></button>' +
-            '<input type="number" min="1" max="999" value="' + it.qty + '" data-qid="' + p.id + '" aria-label="Количество"><button type="button" data-dq="1" data-id="' + p.id + '" aria-label="Больше"><svg class="ic"><use href="#i-plus"/></svg></button></div>' +
+            '<div class="citem__ctrl"><div class="stepper"><button type="button" data-dq="-1" data-id="' + esc(p.id) + '" aria-label="Меньше"><svg class="ic"><use href="#i-minus"/></svg></button>' +
+            '<input type="number" min="1" max="999" value="' + it.qty + '" data-qid="' + esc(p.id) + '" aria-label="Количество"><button type="button" data-dq="1" data-id="' + esc(p.id) + '" aria-label="Больше"><svg class="ic"><use href="#i-plus"/></svg></button></div>' +
             '<span class="muted" style="font-size:13px">' + DC.qtyLabel(p, it.qty) + "</span>" +
-            '<a class="citem__rm" href="/product/' + encodeURIComponent(p.id) + '">Открыть</a><button type="button" class="citem__rm" data-rm="' + p.id + '">Удалить</button></div></div>' +
+            '<a class="citem__rm" href="/product/' + encodeURIComponent(p.id) + '">Открыть</a><button type="button" class="citem__rm" data-rm="' + esc(p.id) + '">Удалить</button></div></div>' +
             '<p class="citem__sum">' + DC.rub(p.price * it.qty) + (p.old ? "<small><s>" + DC.rub(p.old * it.qty) + "</s></small>" : "") + "</p></div>";
         }).join("") + "</div>" +
         '<div class="checkout"><p class="eyebrow">Оформление</p><h2 class="h2" style="margin:14px 0 10px">Контакты и <em>доставка</em></h2>' +

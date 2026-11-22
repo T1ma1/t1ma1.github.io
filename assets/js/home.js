@@ -131,11 +131,25 @@
       var im = imgs[cur], w = +im.getAttribute("width") || im.naturalWidth, h = +im.getAttribute("height") || im.naturalHeight;
       if (w && h) g.style.setProperty("--shop-h", (h / w * 100).toFixed(3) + "%");
     }
+    /* лента (страница контактов на компьютере): фото стоят в ряд целиком, стрелки и перетаскивание прокручивают ряд */
+    var track = $("[data-shop-track]", g);
+    function strip() { return !!track && getComputedStyle(track).display === "flex"; }
     function go(i) {
       imgs[cur].classList.toggle("is-on", false); cur = (i + imgs.length) % imgs.length; imgs[cur].classList.toggle("is-on", true);
       $$("button", dots).forEach(function (b, k) { b.classList.toggle("is-on", k === cur); });
       fit();
-      clearTimeout(timer); if (!reduce && !phone.matches) timer = setTimeout(function () { go(document.hidden ? cur : cur + 1); }, 4200);
+      if (strip()) track.scrollTo({ left: imgs[cur].offsetLeft - track.offsetLeft, behavior: reduce ? "auto" : "smooth" });
+      clearTimeout(timer); if (!reduce && !phone.matches && !strip()) timer = setTimeout(function () { go(document.hidden ? cur : cur + 1); }, 4200);
+    }
+    if (track) {   // прокрутили ленту сами — стрелки продолжают с того кадра, который сейчас слева
+      var st = 0;
+      track.addEventListener("scroll", function () {
+        clearTimeout(st); st = setTimeout(function () {
+          if (!strip()) return; var x = track.scrollLeft + track.offsetLeft, best = 0, d = 1e9;
+          imgs.forEach(function (im, k) { var dd = Math.abs(im.offsetLeft - x); if (dd < d) { d = dd; best = k; } });
+          imgs[cur].classList.remove("is-on"); cur = best; imgs[cur].classList.add("is-on");
+        }, 140);
+      }, { passive: true });
     }
     go(0);
     imgs.forEach(function (im) { var f = function () { if (im.naturalHeight > im.naturalWidth) im.classList.add("is-tall"); }; if (im.complete && im.naturalWidth) f(); else im.addEventListener("load", f); });
