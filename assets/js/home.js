@@ -124,9 +124,13 @@
       dots.appendChild(b);
     });
     /* телефон: рамка повторяет пропорции текущего фото — кадр виден целиком, без обрезки и полей.
-       Там же фото не листаются сами: высота рамки у вертикальных и горизонтальных кадров разная,
-       и самопроизвольная смена сдвигала бы адрес и карту под пальцем. */
+       Вертикальные фото на телефоне не показываются вовсе (просьба клиента 22.11: высокая рамка занимала весь экран) —
+       остаются только горизонтальные, рамка одной высоты. На планшете и компьютере показываются все. */
     var phone = window.matchMedia("(max-width: 760px)");
+    function tall(k) { var im = imgs[k]; return (+im.getAttribute("height") || im.naturalHeight) > (+im.getAttribute("width") || im.naturalWidth); }
+    function usable(k) { return !(phone.matches && tall(k)); }
+    function step(from, dir) { var k = from; for (var n = 0; n < imgs.length; n++) { k = (k + dir + imgs.length) % imgs.length; if (usable(k)) return k; } return from; }
+    function marks() { $$("button", dots).forEach(function (b, k) { b.hidden = !usable(k); }); }
     function fit() {
       var im = imgs[cur], w = +im.getAttribute("width") || im.naturalWidth, h = +im.getAttribute("height") || im.naturalHeight;
       if (w && h) g.style.setProperty("--shop-h", (h / w * 100).toFixed(3) + "%");
@@ -135,12 +139,16 @@
     var track = $("[data-shop-track]", g);
     function strip() { return !!track && getComputedStyle(track).display === "flex"; }
     function go(i) {
-      imgs[cur].classList.toggle("is-on", false); cur = (i + imgs.length) % imgs.length; imgs[cur].classList.toggle("is-on", true);
+      i = (i + imgs.length) % imgs.length; if (!usable(i)) i = step(i, 1);
+      imgs[cur].classList.toggle("is-on", false); cur = i; imgs[cur].classList.toggle("is-on", true);
       $$("button", dots).forEach(function (b, k) { b.classList.toggle("is-on", k === cur); });
       fit();
       if (strip()) track.scrollTo({ left: imgs[cur].offsetLeft - track.offsetLeft, behavior: reduce ? "auto" : "smooth" });
-      clearTimeout(timer); if (!reduce && !phone.matches && !strip()) timer = setTimeout(function () { go(document.hidden ? cur : cur + 1); }, 4200);
+      clearTimeout(timer); if (!reduce && !strip()) timer = setTimeout(function () { go(document.hidden ? cur : step(cur, 1)); }, 4200);
     }
+    marks();
+    var onPhone = function () { marks(); go(cur); };
+    if (phone.addEventListener) phone.addEventListener("change", onPhone); else if (phone.addListener) phone.addListener(onPhone);
     if (track) {   // прокрутили ленту сами — стрелки продолжают с того кадра, который сейчас слева
       var st = 0;
       track.addEventListener("scroll", function () {
@@ -157,17 +165,17 @@
       var b = document.createElement("button");
       b.type = "button"; b.className = "shops__nav shops__nav--" + a[1]; b.setAttribute("aria-label", a[2]);
       b.innerHTML = '<svg class="ic"><use href="' + a[3] + '"/></svg>';
-      b.addEventListener("click", function () { go(cur + a[0]); });
+      b.addEventListener("click", function () { go(step(cur, a[0])); });
       g.appendChild(b);
     });
     var t0 = null, m0 = null;
     g.addEventListener("touchstart", function (e) { var t = e.touches[0]; t0 = { x: t.clientX, y: t.clientY }; }, { passive: true });
     g.addEventListener("touchend", function (e) {
       if (!t0) return; var t = e.changedTouches[0], dx = t.clientX - t0.x, dy = t.clientY - t0.y; t0 = null;
-      if (Math.abs(dx) > 36 && Math.abs(dx) > Math.abs(dy) * 1.3) go(cur + (dx < 0 ? 1 : -1));
+      if (Math.abs(dx) > 36 && Math.abs(dx) > Math.abs(dy) * 1.3) go(step(cur, dx < 0 ? 1 : -1));
     }, { passive: true });
     g.addEventListener("mousedown", function (e) { if (e.button === 0 && !e.target.closest("button")) { m0 = e.clientX; e.preventDefault(); } });
-    window.addEventListener("mouseup", function (e) { if (m0 === null) return; var dx = e.clientX - m0; m0 = null; if (Math.abs(dx) > 40) go(cur + (dx < 0 ? 1 : -1)); });
+    window.addEventListener("mouseup", function (e) { if (m0 === null) return; var dx = e.clientX - m0; m0 = null; if (Math.abs(dx) > 40) go(step(cur, dx < 0 ? 1 : -1)); });
   })();
 
   /* ---------- магазины: вкладки по городам и карта (точка по координатам — без рекламы на карте) ---------- */

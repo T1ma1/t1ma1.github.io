@@ -443,3 +443,20 @@ body.tryon-soon .tsoon { display: grid; place-items: center; position: relative;
 /* у большинства красок и лепнины оригинал на decando.ru всего ~500 px: не растягиваем его на всю рамку, показываем в своём размере по центру */
 .pgal--goods .pgal__main { display: grid; place-items: center; }
 .pgal--goods .pgal__main img { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+
+/* ---------- правки клиента 22.11 ---------- */
+/* точки скрытых на телефоне (вертикальных) фото шоурумов */
+.shops__dots button[hidden] { display: none; }
+/* характеристики и описание товара — компактнее: «никто не читает», шрифт мельче, строки плотнее */
+.ptabs__panel { padding: 18px 0 22px; }
+.spec-table th, .spec-table td { padding: 6px 0; font-size: 13.5px; line-height: 1.4; }
+.spec-note { margin-top: 10px; font-size: 12.5px; }
+.pdesc .prose { font-size: 14px; line-height: 1.55; }
+.pdesc .prose p { margin: 0 0 8px; }
+@media (max-width: 760px) {
+  .ptabs { margin-top: 36px; }
+  .ptabs__nav button { height: 46px; font-size: 19px; }
+  .spec-table th, .spec-table td { padding: 5px 0; font-size: 12.5px; line-height: 1.35; }
+  .spec-table th { width: 40%; }
+  .pdesc .prose { font-size: 13px; line-height: 1.5; }
+}
