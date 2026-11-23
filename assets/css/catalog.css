@@ -460,3 +460,18 @@ body.tryon-soon .tsoon { display: grid; place-items: center; position: relative;
   .spec-table th { width: 40%; }
   .pdesc .prose { font-size: 13px; line-height: 1.5; }
 }
+
+/* ---------- переключатель разделов каталога (23.11): обои · краска · лепнина · фрески ---------- */
+.secnav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; max-width: 620px; margin: 16px 0 26px; }
+.secnav__a { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 12px 16px 11px; border: 1px solid var(--line-2); border-radius: 14px; background: #fff; color: var(--ink); transition: border-color .2s, background .2s, color .2s; }
+.secnav__a b { font: 500 20px/1.1 var(--display); white-space: nowrap; }
+.secnav__a small { font-size: 12px; line-height: 1.2; color: var(--muted); }
+.secnav__a:hover { border-color: var(--ink); }
+.secnav__a.is-on { background: var(--ink); border-color: var(--ink); color: #fff; }
+.secnav__a.is-on small { color: rgba(255, 255, 255, .7); }
+@media (max-width: 760px) {
+  .secnav { gap: 6px; margin: 12px 0 20px; }
+  .secnav__a { align-items: center; padding: 9px 4px 8px; border-radius: 12px; text-align: center; }
+  .secnav__a b { font-size: 16px; }
+  .secnav__a small { font-size: 11px; }
+}

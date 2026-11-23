@@ -102,6 +102,15 @@ window.DC_DEMO = true;   // демо без сервера: см. экран п�
     root.innerHTML = t ? t.innerHTML : "<section class=\"page-head\"><div class=\"container\"><h1 class=\"page-head__title\">Страница не найдена</h1></div></section>";
     document.title = "Страница не найдена | Decando";
   }
+  /* переключатель разделов — как dc_secnav() в lib/seo.php */
+  function secnav(active) {
+    var c = window.DC_CNT || {}, items = [["oboi", "Обои"], ["kraska", "Краска"], ["lepnina", "Лепнина"], ["freski", "Фрески"]];
+    return '<nav class="secnav" aria-label="Разделы каталога">' + items.map(function (it) {
+      var n = +c[it[0]] || 0;
+      return '<a class="secnav__a' + (it[0] === active ? " is-on" : "") + '" href="/product-category/' + it[0] + '"' + (it[0] === active ? ' aria-current="page"' : "") + "><b>" + it[1] + "</b>" +
+        (n ? "<small>" + String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "\u00a0") + "</small>" : "") + "</a>";
+    }).join("") + "</nav>";
+  }
   function crumbs(list) { return list.map(function (c) { return c[1] ? '<a href="' + esc(c[1]) + '">' + esc(c[0]) + "</a>" : "<span>" + esc(c[0]) + "</span>"; }).join(""); }
   function tagUrl(k, v) { var f = FAC.byKey[k]; return "/oboi/" + (f ? f.prefix : k + "-") + v; }
 
@@ -232,7 +241,7 @@ window.DC_DEMO = true;   // демо без сервера: см. экран п�
     if (C0) { var tv = function (t) { return String(t || "").split("{count}").join(String(total)).split("{models}").join(plural(total, "модель", "модели", "моделей")); }; catTxt = { intro: tv(C0.intro), text: tv(C0.text) }; }
     var sorts = [["pop", "Сначала популярные"], ["cheap", "Сначала дешевле"], ["exp", "Сначала дороже"], ["new", "Сначала новинки"], ["sale", "Со скидкой"]];
     root.innerHTML =
-      '<section class="page-head"><div class="container"><nav class="crumbs" aria-label="Навигация">' + crumbs(cr) + '</nav><div class="page-head__row"><div><h1 class="page-head__title page-head__title--tag">' + esc(h1) + "</h1>" + (catTxt.intro ? '<p class="page-head__sub">' + catTxt.intro + "</p>" : "") + "</div></div>" + (o.cat ? '<nav class="catnav" aria-label="Разделы каталога">' + Object.keys(CATS).map(function (c) { return '<a href="' + c + '"' + (c === o.cat ? ' class="is-on" aria-current="page"' : "") + ">" + CATS[c].label + "</a>"; }).join("") + "</nav>" : "") + "</div></section>" +
+      '<section class="page-head"><div class="container"><nav class="crumbs" aria-label="Навигация">' + crumbs(cr) + "</nav>" + secnav(/freski$/.test(o.cat || "") ? "freski" : "oboi") + '<div class="page-head__row"><div><h1 class="page-head__title page-head__title--tag">' + esc(h1) + "</h1>" + (catTxt.intro ? '<p class="page-head__sub">' + catTxt.intro + "</p>" : "") + "</div></div>" + (o.cat ? '<nav class="catnav" aria-label="Разделы каталога">' + Object.keys(CATS).map(function (c) { return '<a href="' + c + '"' + (c === o.cat ? ' class="is-on" aria-current="page"' : "") + ">" + CATS[c].label + "</a>"; }).join("") + "</nav>" : "") + "</div></section>" +
       '<div class="container cat"><aside class="filters" data-filters aria-label="Фильтры"><div class="filters__head"><b class="h3" style="font-size:28px">Фильтры</b><button type="button" class="iconbtn" data-filters-close aria-label="Закрыть фильтры"><svg class="ic"><use href="#i-close"/></svg></button></div>' + side + "</aside><div>" +
       '<div class="cat__bar"><p class="cat__count"><b>' + total + "</b> " + plural(total, "модель", "модели", "моделей") + '</p><div class="cat__tools"><button type="button" class="btn btn--ghost btn--sm cat__filter-btn" data-filters-open><svg class="ic"><use href="#i-filter"/></svg>Фильтры</button><select class="sort" data-sort aria-label="Сортировка">' +
       sorts.map(function (s) { return '<option value="' + s[0] + '"' + (s[0] === sort ? " selected" : "") + ">" + s[1] + "</option>"; }).join("") + "</select></div></div>" + chipsHtml +
@@ -380,7 +389,7 @@ window.DC_DEMO = true;   // демо без сервера: см. экран п�
     var nav = Object.keys(GCATS).filter(function (c) { return GCATS[c].kind === C.kind; });
     var sorts = [["pop", "Сначала популярные"], ["cheap", "Сначала дешевле"], ["exp", "Сначала дороже"], ["sale", "Со скидкой"]];
     root_.innerHTML =
-      '<section class="page-head"><div class="container"><nav class="crumbs" aria-label="Навигация">' + crumbs(cr) + '</nav><div class="page-head__row"><div><h1 class="page-head__title page-head__title--tag">' + esc(h1) + '</h1><p class="page-head__sub">' + esc(intro) + "</p></div></div>" +
+      '<section class="page-head"><div class="container"><nav class="crumbs" aria-label="Навигация">' + crumbs(cr) + "</nav>" + secnav(C.kind) + '<div class="page-head__row"><div><h1 class="page-head__title page-head__title--tag">' + esc(h1) + '</h1><p class="page-head__sub">' + esc(intro) + "</p></div></div>" +
       (nav.length > 1 ? '<nav class="catnav" aria-label="Разделы">' + nav.map(function (c) { return '<a href="' + c + '"' + (c === p0 ? ' class="is-on" aria-current="page"' : "") + ">" + GCATS[c].label + "</a>"; }).join("") + "</nav>" : "") + "</div></section>" +
       '<div class="container cat"><aside class="filters" data-filters aria-label="Фильтры"><div class="filters__head"><b class="h3" style="font-size:28px">Фильтры</b><button type="button" class="iconbtn" data-filters-close aria-label="Закрыть фильтры"><svg class="ic"><use href="#i-close"/></svg></button></div>' + side + "</aside><div>" +
       '<div class="cat__bar"><p class="cat__count"><b>' + total + "</b> " + word + '</p><div class="cat__tools"><button type="button" class="btn btn--ghost btn--sm cat__filter-btn" data-filters-open><svg class="ic"><use href="#i-filter"/></svg>Фильтры</button><select class="sort" data-sort aria-label="Сортировка">' +
