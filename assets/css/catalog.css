@@ -475,3 +475,10 @@ body.tryon-soon .tsoon { display: grid; place-items: center; position: relative;
   .secnav__a b { font-size: 16px; }
   .secnav__a small { font-size: 11px; }
 }
+/* вкладка «Доставка» в карточке товара — тем же шрифтом, что характеристики и описание (просьба клиента 23.11) */
+.ptabs__panel .prose { font-size: 14px; line-height: 1.55; }
+.ptabs__panel .prose p { margin: 0 0 8px; }
+@media (max-width: 760px) { .ptabs__panel .prose { font-size: 13px; line-height: 1.5; } }
+/* три блока карточки товара — характеристики, доставка, описание — строго одним размером шрифта */
+.spec-table th, .spec-table td { font-size: 14px; }
+@media (max-width: 760px) { .spec-table th, .spec-table td { font-size: 13px; } }
