@@ -482,3 +482,11 @@ body.tryon-soon .tsoon { display: grid; place-items: center; position: relative;
 /* три блока карточки товара — характеристики, доставка, описание — строго одним размером шрифта */
 .spec-table th, .spec-table td { font-size: 14px; }
 @media (max-width: 760px) { .spec-table th, .spec-table td { font-size: 13px; } }
+
+/* ---------- нижняя панель на iPhone (24.11) ---------- */
+/* В Safari на iOS 26 адресная строка парит над страницей, и под закреплённой панелью оставалась полоса,
+   в которой просвечивал текст страницы. «Юбка» продолжает фон панели вниз, до самого края экрана. */
+.tabbar { background: rgba(255, 255, 255, .97); }
+.tabbar::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 160px; background: #fff; pointer-events: none; }
+/* счётчик на значке: растёт вправо от значка, а не наезжает на него при «99+» */
+.tabbar__a .count { left: calc(50% + 3px); right: auto; }
